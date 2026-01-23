@@ -66,7 +66,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTexture:
-        m_Texture: {fileID: 2800000, guid: d14f2d1706eea4ee98e0d23ddf9bf2e6, type: 3}
+        m_Texture: {fileID: 2800000, guid: e9d3080cdb4254410a1bf4c0f2e1523f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -82,7 +82,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionTexture:
-        m_Texture: {fileID: 2800000, guid: e9d3080cdb4254410a1bf4c0f2e1523f, type: 3}
+        m_Texture: {fileID: 2800000, guid: d14f2d1706eea4ee98e0d23ddf9bf2e6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
@@ -135,7 +135,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
-    - _NoiseScale: 70
+    - _NoiseScale: 60
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
@@ -151,10 +151,10 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 0.6532188, g: 0, b: 0.7075472, a: 1}
-    - _DissolveColor: {r: 0, g: 0.09776497, b: 1, a: 0}
+    - _DissolveColor: {r: 0, g: 0.09776495, b: 1, a: 1}
     - _DissolveRange: {r: 0.5, g: 3, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _MainColor: {r: 0, g: 0.06871319, b: 1, a: 0}
+    - _MainColor: {r: 0, g: 0.068713166, b: 1, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

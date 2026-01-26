@@ -45,6 +45,6 @@ public class UIToolkitManager : MonoBehaviour
 
     void GameStart()
     {
-        print("게임시작");
+        GameSceneManager.Instance.LoadScene("Map");
     }
 }

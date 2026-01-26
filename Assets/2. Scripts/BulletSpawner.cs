@@ -4,13 +4,23 @@ using UnityEngine.EventSystems;
 public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     [Header("설정")]
-    [SerializeField] private GameObject bulletPrefab; // 생성할 총알 프리팹
-    [SerializeField] private Transform spawnPoint;    // 총알이 나올 위치 (입구)
-    [SerializeField] private float bulletSpeed = 10f; // 총알 속도
-    [SerializeField] private float fireRate = 0.2f; // 총알 속도
+    [SerializeField] private GameObject bulletPrefab;   // 생성할 총알 프리팹
+    [SerializeField] private Transform spawnPoint;      // 총알이 나올 위치 (입구)
+    [SerializeField] private float bulletSpeed = 10f;   // 총알 속도
+    [SerializeField] private float fireRate = 0.2f;     // 총알 속도
+    public GameObject player;                           // 플레이어
+    JoystickPlayer joysticPlayer;
 
     private bool isPressed = false; // 버튼이 눌려있는지 확인
     private float nextFireTime = 0f; // 다음 발사 가능 시간
+
+    void Awake()
+    {
+        if (player != null)
+        {
+            joysticPlayer = player.GetComponent<JoystickPlayer>();
+        }
+    }
 
     void Update()
     {
@@ -26,12 +36,16 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     public void OnPointerDown(PointerEventData eventData)
     {
         isPressed = true;
+
+        joysticPlayer.canRotate = false;
     }
 
     // 버튼에서 손을 뗐을 때 호출 (인터페이스 구현)
     public void OnPointerUp(PointerEventData eventData)
     {
         isPressed = false;
+
+        joysticPlayer.canRotate = true;
     }
     // 버튼과 연결할 함수
     public void FireBullet()
@@ -43,9 +57,12 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
         }
 
         // 1. 총알 생성 (위치와 회전값을 spawnPoint에 맞춤)
-        GameObject bullet = Instantiate(bulletPrefab, spawnPoint.position, spawnPoint.rotation);
+        //GameObject bullet = Instantiate(bulletPrefab, spawnPoint.position, spawnPoint.rotation);
+        
+        Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
 
-        bullet.transform.rotation = Quaternion.Euler(90f,0f,0f);
+        // 최종 회전 = 스폰 지점 회전 상태에서 내부적으로 90도 돌림
+        GameObject bullet = Instantiate(bulletPrefab, spawnPoint.position, spawnPoint.rotation * bulletFix);
 
         // 2. 총알 날아가게 하기 (Rigidbody가 있는 경우)
         Rigidbody rb = bullet.GetComponent<Rigidbody>();

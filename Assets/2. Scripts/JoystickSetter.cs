@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class JoystickSetterExample : MonoBehaviour
+public class JoystickSetter : MonoBehaviour
 {
     public VariableJoystick variableJoystick;
     public Text valueText;

@@ -24,6 +24,11 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
     void Update()
     {
+        if (BattleManager.Instance.isStarting)
+        {
+            return;
+        }
+
         // 버튼이 눌려있고, 다음 발사 시간이 되었을 때
         if (isPressed && Time.time >= nextFireTime)
         {

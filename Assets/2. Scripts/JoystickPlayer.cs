@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class JoystickPlayer : MonoBehaviour
 {
@@ -8,8 +9,23 @@ public class JoystickPlayer : MonoBehaviour
 
     // 회전 제어 변수 (기본값 true)
     public bool canRotate = true;
+
+
+    void Start()
+    {
+        BattleManager.Instance.RegisterPlayer(this);
+    }
+
     public void FixedUpdate()
     {
+        // 3초 대기 중이라면 아래 로직을 모두 건너뜀
+        if (BattleManager.Instance.isStarting)
+        {
+            // 혹시 모를 밀림 방지
+            rb.linearVelocity = Vector3.zero;
+            return;
+        }
+
         Vector3 direction = Vector3.forward * variableJoystick.Vertical + Vector3.right * variableJoystick.Horizontal;
 
         //rb.AddForce(direction * speed * Time.fixedDeltaTime, ForceMode.Impulse);

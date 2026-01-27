@@ -4,7 +4,7 @@ using UnityEngine;
 /// </summary>
 public class Bullet : MonoBehaviour
 {
-    [SerializeField] private float lifeTime = 3f; // 삭제될 시간 (3초)
+    [SerializeField] private float lifeTime = 3f;        // 삭제될 시간 (3초)
 
     public GameObject bulletEffect;                      // 총알이 다른 프리팹에 닿았을 떄(벽, 적 등) 이팩트
     public GameObject wallEffect;                        // 부서지는 벽 이팩트

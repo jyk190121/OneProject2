@@ -134,7 +134,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lifeTime: 3
-  bulletEffect: {fileID: 5351322915541471630, guid: 942b6a8f1c54e7b46aa3467a4260298d, type: 3}
   wallEffect: {fileID: 168542, guid: 5702e2a6fea804b45b49b70d8feaf7ae, type: 3}
 --- !u!136 &5860108298677555509
 CapsuleCollider:

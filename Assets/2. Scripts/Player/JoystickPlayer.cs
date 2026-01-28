@@ -10,7 +10,6 @@ public class JoystickPlayer : MonoBehaviour
     // 회전 제어 변수 (기본값 true)
     public bool canRotate = true;
 
-
     void Start()
     {
         BattleManager.Instance.RegisterPlayer(this);

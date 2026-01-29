@@ -39,7 +39,7 @@ public class JoystickPlayer : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(direction);
 
             // 즉시 회전시키거나, Lerp를 사용하여 부드럽게 회전시킬 수 있음
-            rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f);
+            rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 5f);
         }
     }
 }

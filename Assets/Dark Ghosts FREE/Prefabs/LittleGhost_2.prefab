@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4532995442235875545}
   - component: {fileID: 1930909637886117408}
   - component: {fileID: 3349501489253303589}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Axe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -58,6 +58,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -93,7 +96,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1613826618600133665}
   - component: {fileID: 2851410140900772941}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Body_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -132,6 +135,9 @@ SkinnedMeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 3
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -182,7 +188,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7547905454020152942}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: joint3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -218,7 +224,8 @@ GameObject:
   - component: {fileID: 4599661260913086846}
   - component: {fileID: 3154600866040741233}
   - component: {fileID: 649512763112729173}
-  m_Layer: 0
+  - component: {fileID: 2205280398063749176}
+  m_Layer: 7
   m_Name: LittleGhost_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -235,8 +242,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5818066133640731666}
   - {fileID: 4124788414517731180}
@@ -245,7 +252,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &3714900052075963340
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -259,6 +266,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -286,10 +294,10 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 0
+  m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!136 &3154600866040741233
 CapsuleCollider:
@@ -326,6 +334,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3669bdc2ff810741a270a5dfea73794, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2205280398063749176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 383674549258538840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c897d97160f0f5047baa5fb574410b73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1774589566568768201
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,7 +355,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1565380506330041377}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: joint4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -368,7 +388,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4124788414517731180}
   - component: {fileID: 8113808694384265805}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Body_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -407,6 +427,9 @@ SkinnedMeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 3
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -457,7 +480,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5818066133640731666}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: JNTs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -489,7 +512,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 658947062456248157}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: joint5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -523,7 +546,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8368666242784999745}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: joint1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -557,7 +580,7 @@ GameObject:
   - component: {fileID: 8360006388843075618}
   - component: {fileID: 2036138364386283841}
   - component: {fileID: 2536426030241862533}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Hat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -604,6 +627,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -641,7 +667,7 @@ GameObject:
   - component: {fileID: 225466545209454239}
   - component: {fileID: 4544833558108275285}
   - component: {fileID: 3017014532217323593}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Devil_Head 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -688,6 +714,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -724,7 +753,7 @@ GameObject:
   - component: {fileID: 3212415954351736217}
   - component: {fileID: 8507997624267369138}
   - component: {fileID: 1879898156262973887}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Devil_Head 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -771,6 +800,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -805,7 +837,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6689467353212629879}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: joint2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -837,7 +869,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7749668963700119141}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Devil_Head_Grp
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3381533412230384551}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: joint1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -31,7 +31,7 @@ Transform:
   m_Children:
   - {fileID: 6580878031624591117}
   m_Father: {fileID: 3701749359050088626}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -3.596527e-15, y: -8.478097e-32, z: 2.7012681e-15}
 --- !u!1 &1864089059352329524
 GameObject:
   m_ObjectHideFlags: 0
@@ -41,7 +41,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3161499902345066942}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: joint5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -65,7 +65,7 @@ Transform:
   - {fileID: 5681786152249569710}
   - {fileID: 8717133236508004783}
   m_Father: {fileID: 6295778877744477706}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -4.739026e-13, y: -1.3594833e-29, z: 3.1805545e-15}
 --- !u!1 &1878126804715083738
 GameObject:
   m_ObjectHideFlags: 0
@@ -75,7 +75,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 789380961551532065}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: joint3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,7 +97,7 @@ Transform:
   m_Children:
   - {fileID: 6295778877744477706}
   m_Father: {fileID: 6580878031624591117}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 2.7797596, y: -0.013688951, z: 0.31343558}
 --- !u!1 &2158372511886774786
 GameObject:
   m_ObjectHideFlags: 0
@@ -108,7 +108,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6491411008217181414}
   - component: {fileID: 9093838829779040634}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Body_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -147,6 +147,9 @@ SkinnedMeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 3
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -199,7 +202,7 @@ GameObject:
   - component: {fileID: 8717133236508004783}
   - component: {fileID: 7239718355557010372}
   - component: {fileID: 3152651867700053525}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Hat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -246,6 +249,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -281,7 +287,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3701749359050088626}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: JNTs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -317,7 +323,8 @@ GameObject:
   - component: {fileID: 3589869544119516426}
   - component: {fileID: 4916607283804188061}
   - component: {fileID: 4966255193328820147}
-  m_Layer: 0
+  - component: {fileID: 8508576333356070979}
+  m_Layer: 7
   m_Name: LittleGhost_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -334,8 +341,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3701749359050088626}
   - {fileID: 5562373823236831576}
@@ -344,7 +351,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &3597345983457866398
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -358,6 +365,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -385,10 +393,10 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 0
+  m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!136 &4916607283804188061
 CapsuleCollider:
@@ -425,6 +433,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3669bdc2ff810741a270a5dfea73794, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8508576333356070979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3346880562870294504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c897d97160f0f5047baa5fb574410b73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3695698804475471933
 GameObject:
   m_ObjectHideFlags: 0
@@ -435,7 +455,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5562373823236831576}
   - component: {fileID: 8994015042431660000}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Body_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -474,6 +494,9 @@ SkinnedMeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 3
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -526,7 +549,7 @@ GameObject:
   - component: {fileID: 628778339649252977}
   - component: {fileID: 4386816600440757264}
   - component: {fileID: 7675772410560809489}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Axe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -573,6 +596,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -607,7 +633,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6295778877744477706}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: joint4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -629,7 +655,7 @@ Transform:
   m_Children:
   - {fileID: 3161499902345066942}
   m_Father: {fileID: 789380961551532065}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 3.118553, y: -0.15693915, z: -1.5824034}
 --- !u!1 &5223390204777570953
 GameObject:
   m_ObjectHideFlags: 0
@@ -641,7 +667,7 @@ GameObject:
   - component: {fileID: 2189508592620297584}
   - component: {fileID: 5061233113580896023}
   - component: {fileID: 1122554015821264817}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Devil_Head 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -688,6 +714,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -724,7 +753,7 @@ GameObject:
   - component: {fileID: 1284116606199125610}
   - component: {fileID: 6161113591015821664}
   - component: {fileID: 310373529286357873}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Devil_Head 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -771,6 +800,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -805,7 +837,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5681786152249569710}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Devil_Head_Grp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -838,7 +870,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6580878031624591117}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: joint2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -860,4 +892,4 @@ Transform:
   m_Children:
   - {fileID: 789380961551532065}
   m_Father: {fileID: 3381533412230384551}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 2.5125124, y: -0.06609762, z: -0.8362425}

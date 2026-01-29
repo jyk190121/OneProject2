@@ -86,11 +86,12 @@ public class Bullet : MonoBehaviour
         int targetLayer = collision.gameObject.layer;
         bool isWall = targetLayer == LayerMask.NameToLayer("Wall");
         bool isDWall = targetLayer == LayerMask.NameToLayer("D_Wall");
+        bool enemy = targetLayer == LayerMask.NameToLayer("Enemy");
+        ContactPoint contact = collision.contacts[0];
 
-        if (isWall || isDWall)
+        if (isWall || isDWall )
         {
-            ContactPoint contact = collision.contacts[0];
-            SpawnEffect(contact);
+            SpawnEffect(contact, "BulletEffect");
 
             if (isDWall)
             {
@@ -99,18 +100,24 @@ public class Bullet : MonoBehaviour
             }
             ReturnToPool();
         }
+
+        if(enemy)
+        {
+            SpawnEffect(contact, "EnemyEffect");
+            ReturnToPool();
+        }
     }
 
-    private void SpawnEffect(ContactPoint contact)
+    private void SpawnEffect(ContactPoint contact, string effectName)
     {
         Quaternion rot = Quaternion.LookRotation(contact.normal);
         // 풀에서 가져오기
-        GameObject effect = EffectPooler.Instance.GetEffect("BulletEffect");
+        GameObject effect = EffectPooler.Instance.GetEffect(effectName);
         effect.transform.position = contact.point;
         effect.transform.rotation = rot;
 
-        // 0.5초 뒤에 파괴가 아닌 '반납'
-        EffectPooler.Instance.StartCoroutine(EffectPooler.Instance.ReturnEffectAfterTime("BulletEffect", effect, 0.5f));
+        // 파괴가 아닌 '반납'
+        EffectPooler.Instance.StartCoroutine(EffectPooler.Instance.ReturnEffectAfterTime(effectName, effect, 0.5f));
     }
 
     private void DestroyEffect(ContactPoint contact)

@@ -53,9 +53,9 @@
 //    }
 //}
 
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Pool;
-using System.Collections;
 public class Bullet : MonoBehaviour
 {
     [SerializeField] private float lifeTime = 3f;
@@ -64,6 +64,8 @@ public class Bullet : MonoBehaviour
 
     private IObjectPool<GameObject> targetPool;
     private Rigidbody rb;
+    //public enum OwnerType { Player, Enemy }
+    //public OwnerType owner; // 에너미가 쏘면 Enemy로 설정
 
     void Awake() => rb = GetComponent<Rigidbody>();
 
@@ -86,7 +88,14 @@ public class Bullet : MonoBehaviour
         int targetLayer = collision.gameObject.layer;
         bool isWall = targetLayer == LayerMask.NameToLayer("Wall");
         bool isDWall = targetLayer == LayerMask.NameToLayer("D_Wall");
+
         bool enemy = targetLayer == LayerMask.NameToLayer("Enemy");
+        //bool isTarget = false;
+        //if (owner == OwnerType.Player)
+        //    isTarget = targetLayer == LayerMask.NameToLayer("Enemy");
+        //else
+        //    isTarget = targetLayer == LayerMask.NameToLayer("Player");
+
         ContactPoint contact = collision.contacts[0];
 
         if (isWall || isDWall )
@@ -138,4 +147,14 @@ public class Bullet : MonoBehaviour
             targetPool.Release(gameObject);   // 풀로 반납
         }
     }
+
+    //public void SetDirection(Vector3 direction)
+    //{
+    //    // Rigidbody를 이용해 즉시 물리적인 속도 부여
+    //    rb.linearVelocity = direction * 1f;
+
+    //    // 총알이 날아가는 방향을 쳐다보게 함
+    //    transform.rotation = Quaternion.LookRotation(direction);
+    //}
+
 }

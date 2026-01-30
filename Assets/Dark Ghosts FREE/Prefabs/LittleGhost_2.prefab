@@ -210,7 +210,7 @@ Transform:
   m_Children:
   - {fileID: 1565380506330041377}
   m_Father: {fileID: 6689467353212629879}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 2.1667051, y: -0.047652036, z: 1.790496}
 --- !u!1 &383674549258538840
 GameObject:
   m_ObjectHideFlags: 0
@@ -223,7 +223,6 @@ GameObject:
   - component: {fileID: 3714900052075963340}
   - component: {fileID: 4599661260913086846}
   - component: {fileID: 3154600866040741233}
-  - component: {fileID: 649512763112729173}
   - component: {fileID: 2205280398063749176}
   m_Layer: 7
   m_Name: LittleGhost_2
@@ -322,18 +321,6 @@ CapsuleCollider:
   m_Height: 0.73960495
   m_Direction: 1
   m_Center: {x: -0.0075883865, y: 0.33836842, z: 0.00768137}
---- !u!114 &649512763112729173
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 383674549258538840}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b3669bdc2ff810741a270a5dfea73794, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &2205280398063749176
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -377,7 +364,7 @@ Transform:
   m_Children:
   - {fileID: 658947062456248157}
   m_Father: {fileID: 7547905454020152942}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 1.1564958, y: -0.07279096, z: -0.7549045}
 --- !u!1 &2397504081739905074
 GameObject:
   m_ObjectHideFlags: 0
@@ -536,7 +523,7 @@ Transform:
   - {fileID: 7749668963700119141}
   - {fileID: 8360006388843075618}
   m_Father: {fileID: 1565380506330041377}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -4.6754153e-13, y: 9.5416635e-15, z: 3.1805545e-15}
 --- !u!1 &5606915762062345181
 GameObject:
   m_ObjectHideFlags: 0
@@ -568,7 +555,7 @@ Transform:
   m_Children:
   - {fileID: 6689467353212629879}
   m_Father: {fileID: 5818066133640731666}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -3.596527e-15, y: -8.478097e-32, z: 2.7012681e-15}
 --- !u!1 &6653734336884815458
 GameObject:
   m_ObjectHideFlags: 0
@@ -859,7 +846,7 @@ Transform:
   m_Children:
   - {fileID: 7547905454020152942}
   m_Father: {fileID: 8368666242784999745}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0.76665694, y: -0.017457664, z: -0.15857863}
 --- !u!1 &7844016362900534639
 GameObject:
   m_ObjectHideFlags: 0

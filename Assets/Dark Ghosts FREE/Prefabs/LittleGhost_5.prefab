@@ -223,7 +223,6 @@ GameObject:
   - component: {fileID: 6829955107649664295}
   - component: {fileID: 6341240276530149992}
   - component: {fileID: 4419594928962465579}
-  - component: {fileID: 2581678993758101685}
   - component: {fileID: 6730500648086125157}
   m_Layer: 7
   m_Name: LittleGhost_5
@@ -322,18 +321,6 @@ CapsuleCollider:
   m_Height: 0.73960495
   m_Direction: 1
   m_Center: {x: -0.0075883865, y: 0.33836842, z: 0.00768137}
---- !u!114 &2581678993758101685
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1544760490029538023}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b3669bdc2ff810741a270a5dfea73794, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &6730500648086125157
 MonoBehaviour:
   m_ObjectHideFlags: 0

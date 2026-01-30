@@ -1,4 +1,3 @@
-using AnimatedBattleText.Examples;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -12,8 +11,21 @@ public class BattleManager : MonoBehaviour
     public bool isStarting;
     public Image countImg;
     public TextMeshProUGUI countTxt;
+    List<Enemy> enemies;
+    Player player1;
 
-    void Awake() => Instance = this;
+    void Awake()
+    {
+        if(Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            DontDestroyOnLoad(Instance);
+        }    
+
+    }
 
     public void RegisterPlayer(JoystickPlayer player)
     {

@@ -304,7 +304,7 @@ Transform:
   m_Children:
   - {fileID: 147433478159810774}
   m_Father: {fileID: 7691532382294559317}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 3.3057199, y: -0.1694358, z: -1.7246425}
 --- !u!1 &3256102398597167541
 GameObject:
   m_ObjectHideFlags: 0
@@ -336,7 +336,7 @@ Transform:
   m_Children:
   - {fileID: 7691532382294559317}
   m_Father: {fileID: 3629204078637212596}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 2.1618252, y: -0.04863464, z: -0.5460478}
 --- !u!1 &3462061142968933367
 GameObject:
   m_ObjectHideFlags: 0
@@ -456,7 +456,7 @@ Transform:
   - {fileID: 8924901569769612948}
   - {fileID: 5755070238669645167}
   m_Father: {fileID: 6292870183228144330}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -4.846936e-13, y: -5.0589322e-15, z: -1.1735434e-14}
 --- !u!1 &3831964537345122062
 GameObject:
   m_ObjectHideFlags: 0
@@ -607,7 +607,7 @@ Transform:
   m_Children:
   - {fileID: 6292870183228144330}
   m_Father: {fileID: 1910245649045340907}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 3.4959695, y: -0.034571532, z: 1.5759557}
 --- !u!1 &6180285084413637326
 GameObject:
   m_ObjectHideFlags: 0
@@ -620,7 +620,6 @@ GameObject:
   - component: {fileID: 4634423309508187508}
   - component: {fileID: 2928419839085461821}
   - component: {fileID: 4884291940978257308}
-  - component: {fileID: 6910922714839243262}
   - component: {fileID: 8223766743094075783}
   m_Layer: 7
   m_Name: LittleGhost_4
@@ -719,18 +718,6 @@ CapsuleCollider:
   m_Height: 0.73960495
   m_Direction: 1
   m_Center: {x: -0.0075883865, y: 0.33836842, z: 0.00768137}
---- !u!114 &6910922714839243262
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6180285084413637326}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b3669bdc2ff810741a270a5dfea73794, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &8223766743094075783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -774,7 +761,7 @@ Transform:
   m_Children:
   - {fileID: 1910245649045340907}
   m_Father: {fileID: 9039983383605590660}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -3.596527e-15, y: -8.478097e-32, z: 2.7012681e-15}
 --- !u!1 &8043694225656758566
 GameObject:
   m_ObjectHideFlags: 0

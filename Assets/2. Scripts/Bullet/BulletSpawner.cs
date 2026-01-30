@@ -4,15 +4,15 @@ using UnityEngine.EventSystems;
 public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     [Header("설정")]
-    //[SerializeField] private GameObject bulletPrefab;   // 생성할 총알 프리팹
+    //[SerializeField] private GameObject bulletPrefab; // 생성할 총알 프리팹
     [SerializeField] private Transform spawnPoint;      // 총알이 나올 위치 (입구)
     [SerializeField] private float bulletSpeed = 10f;   // 총알 속도
-    [SerializeField] private float fireRate = 0.2f;     // 총알 속도
+    [SerializeField] private float fireRate = 0.2f;     // 발사 속도
     public GameObject player;                           // 플레이어
     JoystickPlayer joysticPlayer;
 
-    private bool isPressed = false; // 버튼이 눌려있는지 확인
-    private float nextFireTime = 0f; // 다음 발사 가능 시간
+    private bool isPressed = false;                     // 버튼이 눌려있는지 확인
+    private float nextFireTime = 0f;                    // 다음 발사 가능 시간
 
     void Awake()
     {
@@ -24,10 +24,7 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
     void Update()
     {
-        if (BattleManager.Instance.isStarting)
-        {
-            return;
-        }
+        if (BattleManager.Instance.isStarting) return;
 
         // 버튼이 눌려있고, 다음 발사 시간이 되었을 때
         if (isPressed && Time.time >= nextFireTime)

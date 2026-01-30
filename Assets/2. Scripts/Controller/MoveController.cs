@@ -21,17 +21,22 @@ public class MoveController
 
     public void Move(Vector3 direction, float speed)
     {
-        // 1. 회피 방향 계산
         Vector3 avoidanceDir = CalculateAvoidanceDirection(direction);
 
-        // 2. 부드러운 방향 전환 (0.1f -> 0.3f로 약간 높여 반응성 강화)
-        if (smoothedDirection == Vector3.zero) smoothedDirection = avoidanceDir;
-        smoothedDirection = Vector3.Slerp(smoothedDirection, avoidanceDir, 0.3f);
+        if (avoidanceDir == Vector3.zero)
+        {
+            // 이동은 안 하지만 몸은 플레이어를 향해 부드럽게 회전
+            Quaternion lookRot = Quaternion.LookRotation(direction.normalized);
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, lookRot, rotationSpeed * Time.deltaTime));
+            return;
+        }
 
-        // 3. 이동 처리: Y축 속도는 유지하여 중력 영향 받게 함
+        if (smoothedDirection == Vector3.zero) smoothedDirection = avoidanceDir;
+        smoothedDirection = Vector3.Slerp(smoothedDirection, avoidanceDir, 0.15f);
+
         rb.linearVelocity = new Vector3(smoothedDirection.x * speed, rb.linearVelocity.y, smoothedDirection.z * speed);
 
-        // 4. 회전 처리
+        // 회전 처리
         if (smoothedDirection != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(smoothedDirection);
@@ -45,25 +50,26 @@ public class MoveController
     {
         Vector3 origin = rb.position + Vector3.up * 0.5f;
         RaycastHit hit;
-        int combinedLayerMask = (1 << LayerMask.NameToLayer("Wall")) | (1 << LayerMask.NameToLayer("D_Wall"));
         float radius = 0.4f;
 
-        // 1. 아주 가까운 거리(예: 0.7f)에서 벽 충돌 감지
-        // avoidRange가 너무 길면 오히려 길찾기가 꼬입니다. 몸체보다 약간 큰 정도가 좋습니다.
-        if (Physics.SphereCast(origin, radius , targetDir, out hit, 1.0f, combinedLayerMask))
+        Vector3 normalizedTarget = targetDir.normalized;
+
+        // SphereCast로 정면의 넓은 범위 감지
+        if (Physics.SphereCast(origin, radius, normalizedTarget, out hit, 5.0f, combinedLayerMask))
         {
-            // [핵심] 벽의 수직 벡터(Normal)를 가져옵니다.
             Vector3 hitNormal = hit.normal;
-            hitNormal.y = 0; // 수평 이동만 고려
+            hitNormal.y = 0;
+            Vector3 slideDir = Vector3.ProjectOnPlane(normalizedTarget, hitNormal).normalized;
 
-            // [핵심] 가려던 방향(targetDir)을 벽면(hitNormal)에 투영하여 미끄러지는 방향 계산
-            Vector3 slideDir = Vector3.ProjectOnPlane(targetDir, hitNormal).normalized;
+            bool leftBlocked = Physics.Raycast(origin, Quaternion.Euler(0, -45, 0) * normalizedTarget, 5.0f, combinedLayerMask);
+            bool rightBlocked = Physics.Raycast(origin, Quaternion.Euler(0, 45, 0) * normalizedTarget, 5.0f, combinedLayerMask);
 
-            // 약간의 회피 힘을 더해 벽에서 살짝 떨어지게 유도
+            if (leftBlocked && rightBlocked) return Vector3.zero;
+
             return (slideDir + hitNormal * 0.2f).normalized;
         }
 
-        // 2. 만약 정면은 괜찮은데 대각선이 걸릴 수도 있으니 스캔 추가
+        //만약 정면은 괜찮은데 대각선이 걸릴 수도 있으니 스캔 추가
         for (float angle = 30f; angle <= 90f; angle += 30f)
         {
             if (Physics.Raycast(origin, Quaternion.Euler(0, angle, 0) * targetDir, out hit, 0.8f, combinedLayerMask))
@@ -78,13 +84,6 @@ public class MoveController
 
         return targetDir;
     }
-
-
-    //public void Move(Vector3 targetPosition, float speed)
-    //{
-    //    agent.speed = speed;
-    //    agent.SetDestination(targetPosition); // 경로를 알아서 계산함 (벽 회피 포함)
-    //}
 
     public void Stop()
     {

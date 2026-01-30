@@ -139,7 +139,7 @@ public class EnemyFSM : MonoBehaviour
 
         GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet();
 
-        bulletObj.transform.SetParent(null);
+        //bulletObj.transform.SetParent(null);
         bulletObj.transform.position = bulletPos.position;
         bulletObj.transform.rotation = Quaternion.LookRotation(direction);
 

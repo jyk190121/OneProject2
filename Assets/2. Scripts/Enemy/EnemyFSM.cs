@@ -47,6 +47,8 @@ public class EnemyFSM : BaseUnit
             // SO에서 스탯 가져와서 현재 체력 초기화
             InitStats(enemyData.HP);
 
+            SetDeathEffect(enemyData.DIEEFFECT);
+
             // 속도 등 다른 스탯 적용
             // 예: moveController.SetSpeed(enemyData.SPEED);
         }

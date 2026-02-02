@@ -19,4 +19,4 @@ MonoBehaviour:
   ATTSPEED: 0.6
   GUN: {fileID: 160796, guid: b955daae02e019d45a8fb68cfd843784, type: 3}
   ITEMS: []
-  EFFECT: {fileID: 144898, guid: 1570b78163aaedc44bfd35cf13a9f13f, type: 3}
+  DIEEFFECT: {fileID: 7914662257891743077, guid: 3c0de2607c58f0d4ebfd659a38b10aa7, type: 3}

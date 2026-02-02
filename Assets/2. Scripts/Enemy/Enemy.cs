@@ -25,5 +25,5 @@ public class Enemy : ScriptableObject
     public List<Item> ITEMS;
 
     [Header("사망 시 표시될 이팩트")]
-    public GameObject EFFECT;
+    public GameObject DIEEFFECT;
 }

@@ -19,6 +19,8 @@ public class JoystickPlayer : BaseUnit
         if (playerData != null)
         {
             InitStats(playerData.HP);
+
+            SetDeathEffect(playerData.DIEEFFECT);
             // playerData.SPEED 등을 사용하여 이동 속도 설정
         }
     }

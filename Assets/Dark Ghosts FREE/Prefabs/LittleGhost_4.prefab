@@ -731,6 +731,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c897d97160f0f5047baa5fb574410b73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  HP_BAR: {fileID: 0}
+  currentHP: 0
+  enemyData: {fileID: 11400000, guid: 04d73b9ac61f8284e92d65b1afadc528, type: 2}
   bulletPos: {fileID: 2118851210396758908}
 --- !u!1 &6218900775686417162
 GameObject:

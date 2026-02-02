@@ -15,6 +15,8 @@ public class EnemyBullet : MonoBehaviour
     //public enum OwnerType { Player, Enemy }
     //public OwnerType owner; // 에너미가 쏘면 Enemy로 설정
 
+    float damage;
+
     void Awake() => rb = GetComponent<Rigidbody>();
 
     public void SetPool(IObjectPool<GameObject> pool) => targetPool = pool;
@@ -29,6 +31,11 @@ public class EnemyBullet : MonoBehaviour
     {
         yield return new WaitForSeconds(lifeTime);
         ReturnToPool();
+    }
+
+    public void SetDamage(float att)
+    {
+        this.damage = att;
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -63,7 +70,7 @@ public class EnemyBullet : MonoBehaviour
 
             if (collision.gameObject.TryGetComponent<BaseUnit>(out var unit))
             {
-                unit.TakeDamage(10f);
+                unit.TakeDamage(this.damage);
                 //ReturnToPool();
                 print($"플레이어 HP : {unit.currentHP}");
             }

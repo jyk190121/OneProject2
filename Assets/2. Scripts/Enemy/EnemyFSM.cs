@@ -128,8 +128,9 @@ public class EnemyFSM : BaseUnit
             currentState = State.Idle;
             return;
         }
+        float moveSpeed = (1.2f - enemyData.MOVESPEED) * 5f;
 
-        moveController.Move(direction.normalized, 1.5f);
+        moveController.Move(direction.normalized, moveSpeed);
 
         //Vector3 direction = (targetPlayer.position - transform.position).normalized;
         //moveController.Move(direction, 2f);
@@ -154,9 +155,10 @@ public class EnemyFSM : BaseUnit
 
         animController.PlayAttack();
         float timer = 0f;
-        float rotaionSpeed = 5f;
+        float rotaionSpeed = 20f;
+        float attSpeed = (1.2f - enemyData.ATTSPEED); 
 
-        while (timer < 0.5f)
+        while (timer < attSpeed)
         {
             timer += Time.deltaTime;
             // 적 본체를 플레이어 방향으로 회전 (Y축만 회전하여 위아래로 기우는 것 방지)
@@ -183,6 +185,8 @@ public class EnemyFSM : BaseUnit
 
         EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
 
+        enemyBulletScript.SetDamage(enemyData.ATT);
+
         if (enemyBulletScript != null)
         {
             Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
@@ -190,7 +194,7 @@ public class EnemyFSM : BaseUnit
             {
                 //rb.linearVelocity = Vector3.zero; // 이전 속도 초기화
                 //rb.linearVelocity = direction * 10f; // 새 방향으로 발사
-                rb.linearVelocity = transform.forward * 20f;
+                rb.linearVelocity = transform.forward * 10f;
             }
         }
 

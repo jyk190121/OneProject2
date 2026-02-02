@@ -56,6 +56,9 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
         GameObject bullet = BulletPoolManager.Instance.GetBullet();
 
+        Bullet bulletAtt = bullet.GetComponent<Bullet>();
+        bulletAtt.SetDamage(joysticPlayer.playerData.ATT);
+
         bullet.transform.position = spawnPoint.position;
         Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
         bullet.transform.rotation = spawnPoint.rotation * bulletFix;

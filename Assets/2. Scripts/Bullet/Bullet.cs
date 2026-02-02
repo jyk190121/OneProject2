@@ -67,6 +67,8 @@ public class Bullet : MonoBehaviour
     //public enum OwnerType { Player, Enemy }
     //public OwnerType owner; // 에너미가 쏘면 Enemy로 설정
 
+    float damage = 10f;             // 총알 공격력
+
     void Awake() => rb = GetComponent<Rigidbody>();
 
     public void SetPool(IObjectPool<GameObject> pool) => targetPool = pool;
@@ -81,6 +83,11 @@ public class Bullet : MonoBehaviour
     {
         yield return new WaitForSeconds(lifeTime);
         ReturnToPool();
+    }
+
+    public void SetDamage(float att)
+    {
+        damage = att;
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -116,7 +123,7 @@ public class Bullet : MonoBehaviour
 
             if (collision.gameObject.TryGetComponent<BaseUnit>(out var unit))
             {
-                unit.TakeDamage(10f);
+                unit.TakeDamage(this.damage);
                 //ReturnToPool();
                 print($"{unit.name} HP : {unit.currentHP}");
 

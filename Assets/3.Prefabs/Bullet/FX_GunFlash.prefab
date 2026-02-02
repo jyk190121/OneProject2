@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6375506313266740187}
   - component: {fileID: -2208810662260774128}
   - component: {fileID: 2178235259016610994}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: FX_GunFlash
   m_TagString: Untagged
   m_Icon: {fileID: 0}

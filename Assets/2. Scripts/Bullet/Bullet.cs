@@ -113,6 +113,14 @@ public class Bullet : MonoBehaviour
         if(enemy)
         {
             SpawnEffect(contact, "EnemyEffect");
+
+            if (collision.gameObject.TryGetComponent<BaseUnit>(out var unit))
+            {
+                unit.TakeDamage(10f);
+                //ReturnToPool();
+                print($"{unit.name} HP : {unit.currentHP}");
+
+            }
             ReturnToPool();
         }
     }

@@ -9,12 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9c5da586490f1c645852a89864cc283f, type: 3}
-  m_Name: NewPlayer
+  m_Script: {fileID: 11500000, guid: b0797b85399eb5c4da4dd69760f2233a, type: 3}
+  m_Name: NewEnemy 5
   m_EditorClassIdentifier: 
-  HP: 300
-  SPEED: 20
+  type: 
+  HP: 100
+  SPEED: 10
   ATT: 10
-  GUN: {fileID: 5030284608985399073, guid: f3e49ab19a3d90645a9293025d4426a5, type: 3}
+  GUN: {fileID: 160796, guid: b955daae02e019d45a8fb68cfd843784, type: 3}
   ITEMS: []
-  EFFECT: {fileID: 175590, guid: c83a45822d0d3f94991e76a87670125c, type: 3}
+  EFFECT: {fileID: 144898, guid: 1570b78163aaedc44bfd35cf13a9f13f, type: 3}

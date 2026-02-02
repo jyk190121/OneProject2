@@ -3,8 +3,11 @@ using UnityEngine;
 /// <summary>
 /// 이동/공격/음직임
 /// </summary>
-public class EnemyFSM : MonoBehaviour
+public class EnemyFSM : BaseUnit
 {
+    [Header("데이터 설정")]
+    public Enemy enemyData; // 스크립터블 오브젝트 할당
+
     enum State
     {
         Idle,
@@ -17,7 +20,7 @@ public class EnemyFSM : MonoBehaviour
     State currentState = State.Idle;
 
     //사망여부 체크
-    bool isDead = false;
+    //bool isDead = false;
 
     //최적화 시키기 위한 변수 (거리 계산)
     float attackSqr;
@@ -38,6 +41,16 @@ public class EnemyFSM : MonoBehaviour
 
     void Awake()
     {
+
+        if (enemyData != null)
+        {
+            // SO에서 스탯 가져와서 현재 체력 초기화
+            InitStats(enemyData.HP);
+
+            // 속도 등 다른 스탯 적용
+            // 예: moveController.SetSpeed(enemyData.SPEED);
+        }
+
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
 
@@ -58,6 +71,11 @@ public class EnemyFSM : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //if(currentHP <= 0 )
+        //{
+        //    Die();
+        //}
+
         if(isDead || targetPlayer == null) return;
 
         UpdateState();
@@ -133,15 +151,35 @@ public class EnemyFSM : MonoBehaviour
     IEnumerator Attack(Vector3 direction)
     {
         isAttacking = true;
-        animController.PlayAttack();
 
-        yield return new WaitForSeconds(0.5f);
+        animController.PlayAttack();
+        float timer = 0f;
+        float rotaionSpeed = 5f;
+
+        while (timer < 0.5f)
+        {
+            timer += Time.deltaTime;
+            // 적 본체를 플레이어 방향으로 회전 (Y축만 회전하여 위아래로 기우는 것 방지)
+            Vector3 lookDir = direction;
+            lookDir.y = 0; // 적이 바닥을 보거나 하늘을 보지 않도록 고정
+            if (lookDir != Vector3.zero)
+            {
+                //transform.rotation = Quaternion.LookRotation(lookDir);
+                Quaternion targetRotation = Quaternion.LookRotation(lookDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotaionSpeed);
+            }
+
+            yield return null;
+        }
+
+        //yield return new WaitForSeconds(0.5f);
 
         GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet();
 
         //bulletObj.transform.SetParent(null);
         bulletObj.transform.position = bulletPos.position;
-        bulletObj.transform.rotation = Quaternion.LookRotation(direction);
+        //bulletObj.transform.rotation = Quaternion.LookRotation(direction);
+        bulletObj.transform.rotation = transform.rotation;
 
         EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
 
@@ -150,8 +188,9 @@ public class EnemyFSM : MonoBehaviour
             Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.linearVelocity = Vector3.zero; // 이전 속도 초기화
-                rb.linearVelocity = direction * 10f; // 새 방향으로 발사
+                //rb.linearVelocity = Vector3.zero; // 이전 속도 초기화
+                //rb.linearVelocity = direction * 10f; // 새 방향으로 발사
+                rb.linearVelocity = transform.forward * 20f;
             }
         }
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class JoystickPlayer : MonoBehaviour
+public class JoystickPlayer : BaseUnit
 {
     public float speed;
     public VariableJoystick variableJoystick;
@@ -10,9 +10,17 @@ public class JoystickPlayer : MonoBehaviour
     // 회전 제어 변수 (기본값 true)
     public bool canRotate = true;
 
+    public Player playerData; // P1_Data, P2_Data 등을 각각 할당
+
     void Start()
     {
         BattleManager.Instance.RegisterPlayer(this);
+
+        if (playerData != null)
+        {
+            InitStats(playerData.HP);
+            // playerData.SPEED 등을 사용하여 이동 속도 설정
+        }
     }
 
     public void FixedUpdate()

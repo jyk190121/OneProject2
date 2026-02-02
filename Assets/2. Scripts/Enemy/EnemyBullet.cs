@@ -60,6 +60,14 @@ public class EnemyBullet : MonoBehaviour
         if (collision.gameObject.CompareTag("Player"))
         {
             SpawnEffect(contact, "PlayerEffect");
+
+            if (collision.gameObject.TryGetComponent<BaseUnit>(out var unit))
+            {
+                unit.TakeDamage(10f);
+                //ReturnToPool();
+                print($"플레이어 HP : {unit.currentHP}");
+            }
+
             ReturnToPool();
         }
     }

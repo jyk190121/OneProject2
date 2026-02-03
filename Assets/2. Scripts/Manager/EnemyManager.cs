@@ -12,32 +12,34 @@ public class EnemyManager : MonoBehaviour
 {
     public List<Enemy> enemies;                     // 모든 적 타입 리스트
     public List<Transform> enemyPos;                // 적 생성 위치
-    List<Enemy> enemyList = new List<Enemy>();      // 에너미 돌리기
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        enemyList = enemies;
-
         StartCoroutine(SpawnEnemy(enemies));
     }
 
     IEnumerator SpawnEnemy(List<Enemy> enemies)
     {
+        int count = 0;
+
         yield return new WaitForSeconds(3f);
 
-        for (int i =0;  i < 10; i++)
+        for (int i =0;  i < 50; i++)
         {
-            GameObject enemyObj = Instantiate(enemyList[i].PREFAB, enemyPos[i]);
+            int r = Random.Range(0, 12);
+            if (enemies.Count <= count)
+            {
+                count = 0;
+            }
+
+            GameObject enemyObj = Instantiate(enemies[count].PREFAB, enemyPos[r]);
+
+            count++;
 
             yield return new WaitForSeconds(1f);
-            enemyList.Remove(enemyList[i]);
-
-            if (enemyList == null)
-            {
-                enemyList = enemies;
-            }
+            //enemyList.Remove(enemyList[i]);
         }
     }
 }

@@ -1688,7 +1688,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 101
   m_TargetDisplay: 0
 --- !u!224 &598680910
 RectTransform:
@@ -5617,8 +5617,8 @@ MonoBehaviour:
   countTxt: {fileID: 1433812811}
   joystick: {fileID: 1221020841}
   playerHP_bar: {fileID: 1159291446}
-  wallA: {fileID: 3411282555323690132, guid: c1e8bc31b0e766d458c1e684f3bd902f, type: 3}
-  wallB: {fileID: 919132149155446097, guid: 04e65bb6faeedd142ad8021eaa7578ea, type: 3}
+  wallA: {fileID: 7860993952751167360, guid: e42273a1028b64f489a0da8de70e73ce, type: 3}
+  wallB: {fileID: 2388667586293664971, guid: 075efa05d4009e047a4b0fc910ddf523, type: 3}
 --- !u!4 &2084492500
 Transform:
   m_ObjectHideFlags: 0

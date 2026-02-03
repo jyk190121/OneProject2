@@ -21,7 +21,6 @@ public class BattleManager : MonoBehaviour
     public GameObject wallB;       // Y축 고정 블록 (안밀림)
 
     GameObject[] block = new GameObject[2];
-    Transform transPos;
 
     void Awake()
     {
@@ -60,13 +59,9 @@ public class BattleManager : MonoBehaviour
         countImg.gameObject.SetActive(true);
         StartCoroutine(StartDelayRoutine());
         //StartCoroutine(StartBlockCreate());
+        // [수정] Update 대신 Start에서 한 번만 호출하여 반복 루프를 돌립니다.
+        StartCoroutine(BlockSpawnLoop());
     }
-
-    void Update()
-    {
-        StartCoroutine(StartBlockCreate());
-    }
-
     IEnumerator StartDelayRoutine()
     {
         isStarting = true;
@@ -88,31 +83,67 @@ public class BattleManager : MonoBehaviour
         countTxt.text = "";
     }
 
-    IEnumerator StartBlockCreate()
+    //IEnumerator StartBlockCreate()
+    //{
+    //    int r = Random.Range(0, 2);
+    //    int ea = Random.Range(0, 10);
+
+    //    yield return new WaitForSeconds(3f);
+
+    //    StartCoroutine(CreateBlcok(r, ea));
+
+    //    yield return new WaitForSeconds(15f);
+    //}
+
+    //IEnumerator CreateBlcok(int r, int ea)
+    //{
+    //    for (int i = 0; i < ea; i++)
+    //    {
+    //        float clampX = Random.Range(-6f, 6.1f);
+    //        float clampZ = Random.Range(-45f, 45.1f);
+    //        float y = -0.5f;
+
+    //        if (r == 0) y = Mathf.Clamp(y, 0f, 15f);
+
+    //        yield return new WaitForSeconds(3f);
+
+    //        transPos.position = new Vector3(clampX, y, clampZ);
+
+    //        yield return new WaitForSeconds(3f);
+            
+    //        Instantiate(block[r], transPos);
+    //    }
+    //}
+
+    // [추가] 블록 생성을 주기적으로 반복하는 루프
+    IEnumerator BlockSpawnLoop()
     {
-        int r = Random.Range(0, 2);
-        int ea = Random.Range(0, 10);
+        while (true) // 게임이 끝날 때까지 반복
+        {
+            yield return new WaitForSeconds(15f); // 15초마다 블록 생성 파동 시작
 
-        yield return new WaitForSeconds(3f);
+            int r = Random.Range(0, 2);
+            int ea = Random.Range(1, 10); // 최소 1개는 생성하도록 설정
 
-        CreateBlcok(r, ea);
-
-        yield return new WaitForSeconds(15f);
+            yield return StartCoroutine(CreateBlock(r, ea));
+        }
     }
 
-    void CreateBlcok(int r, int ea)
+    IEnumerator CreateBlock(int r, int ea)
     {
         for (int i = 0; i < ea; i++)
         {
             float clampX = Random.Range(-6f, 6.1f);
             float clampZ = Random.Range(-45f, 45.1f);
-            float y = -0.5f;
+            float y = (r == 0) ? Random.Range(0f, 15f) : -0.5f;
 
-            if (r == 0) y = Mathf.Clamp(y, 0f, 15f);
+            Vector3 spawnPosition = new Vector3(clampX, y, clampZ);
 
-            transPos.position = new Vector3(clampX, y, clampZ);
+            // [해결] transPos를 거치지 않고 직접 위치를 지정하여 생성
+            // Quaternion.identity는 회전값 없음(0,0,0)을 의미합니다.
+            Instantiate(block[r], spawnPosition, Quaternion.identity);
 
-            Instantiate(block[r], transPos);
+            yield return new WaitForSeconds(0.05f); // 블록 하나 생성 후 대기 시간
         }
     }
 }

@@ -13,7 +13,6 @@ public class EnemyManager : MonoBehaviour
     public List<Enemy> enemies;                     // 모든 적 타입 리스트
     public List<Transform> enemyPos;                // 적 생성 위치
 
-
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

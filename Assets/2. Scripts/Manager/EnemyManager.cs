@@ -25,7 +25,7 @@ public class EnemyManager : MonoBehaviour
 
         yield return new WaitForSeconds(3f);
 
-        for (int i =0;  i < 50; i++)
+        for (int i =0;  i < 30; i++)
         {
             int r = Random.Range(0, 12);
             if (enemies.Count <= count)

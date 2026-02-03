@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 using UnityEngine.UI;
 
 public class BattleManager : MonoBehaviour
@@ -16,6 +17,12 @@ public class BattleManager : MonoBehaviour
     public VariableJoystick joystick;
     public Image playerHP_bar;
 
+    public GameObject wallA;       // 떨어지는 블록 (밀림)
+    public GameObject wallB;       // Y축 고정 블록 (안밀림)
+
+    GameObject[] block = new GameObject[2];
+    Transform transPos;
+
     void Awake()
     {
         if(Instance == null)
@@ -25,8 +32,9 @@ public class BattleManager : MonoBehaviour
         else
         {
             DontDestroyOnLoad(Instance);
-        }    
-
+        }
+        block[0] = wallA;
+        block[1] = wallB;
     }
 
     public void RegisterPlayer(JoystickPlayer player)
@@ -51,6 +59,12 @@ public class BattleManager : MonoBehaviour
     {
         countImg.gameObject.SetActive(true);
         StartCoroutine(StartDelayRoutine());
+        //StartCoroutine(StartBlockCreate());
+    }
+
+    void Update()
+    {
+        StartCoroutine(StartBlockCreate());
     }
 
     IEnumerator StartDelayRoutine()
@@ -72,5 +86,33 @@ public class BattleManager : MonoBehaviour
         // countLabel.style.display = DisplayStyle.None; // UI 숨기기
         countImg.gameObject.SetActive(false);
         countTxt.text = "";
+    }
+
+    IEnumerator StartBlockCreate()
+    {
+        int r = Random.Range(0, 2);
+        int ea = Random.Range(0, 10);
+
+        yield return new WaitForSeconds(3f);
+
+        CreateBlcok(r, ea);
+
+        yield return new WaitForSeconds(15f);
+    }
+
+    void CreateBlcok(int r, int ea)
+    {
+        for (int i = 0; i < ea; i++)
+        {
+            float clampX = Random.Range(-6f, 6.1f);
+            float clampZ = Random.Range(-45f, 45.1f);
+            float y = -0.5f;
+
+            if (r == 0) y = Mathf.Clamp(y, 0f, 15f);
+
+            transPos.position = new Vector3(clampX, y, clampZ);
+
+            Instantiate(block[r], transPos);
+        }
     }
 }

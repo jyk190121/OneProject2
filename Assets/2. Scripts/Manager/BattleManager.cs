@@ -12,7 +12,9 @@ public class BattleManager : MonoBehaviour
     public Image countImg;
     public TextMeshProUGUI countTxt;
     List<Enemy> enemies;
-    Player player1;
+    Player player;
+    public VariableJoystick joystick;
+    public Image playerHP_bar;
 
     void Awake()
     {
@@ -32,6 +34,16 @@ public class BattleManager : MonoBehaviour
         if (!joystickPlayers.Contains(player))
         {
             joystickPlayers.Add(player);
+            
+            if(player.variableJoystick == null)
+            {
+                player.variableJoystick = joystick;
+            }
+            if(player.HP_BAR == null)
+            {
+                player.HP_BAR = playerHP_bar;
+            }
+
         }
     }
 

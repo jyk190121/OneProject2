@@ -24,6 +24,9 @@ public class Enemy : ScriptableObject
     [Header("보유 아이템")]
     public List<Item> ITEMS;
 
+    [Header("유닛")]
+    public GameObject PREFAB;
+
     [Header("사망 시 표시될 이팩트")]
     public GameObject DIEEFFECT;
 }

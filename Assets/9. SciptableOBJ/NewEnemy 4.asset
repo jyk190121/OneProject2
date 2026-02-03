@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0797b85399eb5c4da4dd69760f2233a, type: 3}
   m_Name: NewEnemy 4
   m_EditorClassIdentifier: 
-  type: 
+  type: A
   HP: 100
   ATT: 13
   MOVESPEED: 0.6
   ATTSPEED: 0.6
   GUN: {fileID: 160796, guid: b955daae02e019d45a8fb68cfd843784, type: 3}
   ITEMS: []
+  PREFAB: {fileID: 6180285084413637326, guid: 599519992bda7c14399432c05b55666c, type: 3}
   DIEEFFECT: {fileID: 7914662257891743077, guid: 3c0de2607c58f0d4ebfd659a38b10aa7, type: 3}

@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 public class BaseUnit : MonoBehaviour
@@ -50,6 +51,7 @@ public class BaseUnit : MonoBehaviour
 
     public void UpdateUI()
     {
+        if (HP_BAR == null) return;
         HP_BAR.fillAmount = currentHP / maxHP;
     }
 

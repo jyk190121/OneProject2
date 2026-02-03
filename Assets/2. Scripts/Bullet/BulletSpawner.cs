@@ -16,6 +16,8 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
     void Awake()
     {
+        //player = BattleManager.Instance.joystickPlayers[0].GetComponent<GameObject>();
+
         if (player != null)
         {
             joysticPlayer = player.GetComponent<JoystickPlayer>();

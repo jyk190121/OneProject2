@@ -16,5 +16,6 @@ MonoBehaviour:
   SPEED: 20
   ATT: 12
   GUN: {fileID: 5030284608985399073, guid: f3e49ab19a3d90645a9293025d4426a5, type: 3}
-  ITEMS: []
+  ITEMS:
+  - {fileID: 11400000, guid: 5fedd029a8c36cb4fb0c4ccd60a4fb5a, type: 2}
   DIEEFFECT: {fileID: 100000, guid: 5b6c2f68addb63847b151f0d41a9d3b1, type: 3}

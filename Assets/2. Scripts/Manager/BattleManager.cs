@@ -120,7 +120,7 @@ public class BattleManager : MonoBehaviour
     {
         while (true) // 게임이 끝날 때까지 반복
         {
-            yield return new WaitForSeconds(15f); // 15초마다 블록 생성 파동 시작
+            yield return new WaitForSeconds(5f); // 15초마다 블록 생성 파동 시작
 
             int r = Random.Range(0, 2);
             int ea = Random.Range(1, 10); // 최소 1개는 생성하도록 설정
@@ -141,9 +141,10 @@ public class BattleManager : MonoBehaviour
 
             // [해결] transPos를 거치지 않고 직접 위치를 지정하여 생성
             // Quaternion.identity는 회전값 없음(0,0,0)을 의미합니다.
-            Instantiate(block[r], spawnPosition, Quaternion.identity);
+            GameObject newBlock = Instantiate(block[r], transform);
+            newBlock.transform.position = spawnPosition;
 
-            yield return new WaitForSeconds(0.05f); // 블록 하나 생성 후 대기 시간
+            yield return new WaitForSeconds(1f); // 블록 하나 생성 후 대기 시간
         }
     }
 }

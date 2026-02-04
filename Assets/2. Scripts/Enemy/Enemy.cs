@@ -11,10 +11,9 @@ public class Enemy : ScriptableObject
     [Header("적 속성")]
     public float HP;
     public float ATT;
-    [Header("스피드는 낮을수록 빠르게")]
-    [Range(0f, 1f)]
+    [Range(1f, 10f)]
     public float MOVESPEED;
-    [Range(0f, 1f)]
+    [Range(0.1f, 10f)]
     public float ATTSPEED;
 
     [Header("보유 총")]

@@ -130,7 +130,7 @@ public class EnemyFSM : BaseUnit
             currentState = State.Idle;
             return;
         }
-        float moveSpeed = (1.2f - enemyData.MOVESPEED) * 5f;
+        float moveSpeed = enemyData.MOVESPEED;
 
         moveController.Move(direction.normalized, moveSpeed);
 
@@ -157,8 +157,8 @@ public class EnemyFSM : BaseUnit
 
         animController.PlayAttack();
         float timer = 0f;
-        float rotaionSpeed = 20f;
-        float attSpeed = (1.2f - enemyData.ATTSPEED); 
+        float rotaionSpeed = 10f;
+        float attSpeed = enemyData.ATTSPEED; 
 
         while (timer < attSpeed)
         {
@@ -196,7 +196,7 @@ public class EnemyFSM : BaseUnit
             {
                 //rb.linearVelocity = Vector3.zero; // 이전 속도 초기화
                 //rb.linearVelocity = direction * 10f; // 새 방향으로 발사
-                rb.linearVelocity = transform.forward * 10f;
+                rb.linearVelocity = transform.forward * 5f;
             }
         }
 

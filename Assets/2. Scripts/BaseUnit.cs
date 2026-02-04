@@ -45,8 +45,14 @@ public class BaseUnit : MonoBehaviour
             Destroy(effect, 1.5f);
         }
 
-
         Destroy(gameObject);
+    }
+
+    public void Heal(float heal)
+    {
+        currentHP += heal;
+        if (currentHP >= maxHP) currentHP = maxHP;
+        UpdateUI();
     }
 
     public void UpdateUI()
@@ -60,4 +66,5 @@ public class BaseUnit : MonoBehaviour
     {
         deathEffectPrefab = effect;
     }
+
 }

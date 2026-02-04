@@ -21,11 +21,12 @@ public class EnemyManager : MonoBehaviour
 
     IEnumerator SpawnEnemy(List<Enemy> enemies)
     {
-        int count = 0;
+        int count = Random.Range(0, 10);
+        int enemyCount = Random.Range(30, 101);
 
         yield return new WaitForSeconds(3f);
 
-        for (int i =0;  i < 30; i++)
+        for (int i =0;  i < enemyCount; i++)
         {
             int r = Random.Range(0, 12);
             if (enemies.Count <= count)

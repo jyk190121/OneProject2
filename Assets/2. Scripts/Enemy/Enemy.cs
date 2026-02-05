@@ -11,7 +11,7 @@ public class Enemy : ScriptableObject
     [Header("적 속성")]
     public float HP;
     public float ATT;
-    [Range(1f, 10f)]
+    [Range(0.1f, 10f)]
     public float MOVESPEED;
     [Range(0.1f, 10f)]
     public float ATTSPEED;

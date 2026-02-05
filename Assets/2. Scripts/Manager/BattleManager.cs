@@ -133,7 +133,7 @@ public class BattleManager : MonoBehaviour
     {
         for (int i = 0; i < ea; i++)
         {
-            float clampX = Random.Range(-6f, 6.1f);
+            float clampX = Random.Range(-40f, 40.1f);
             float clampZ = Random.Range(-45f, 45.1f);
             float y = (r == 0) ? Random.Range(0f, 15f) : -0.5f;
 

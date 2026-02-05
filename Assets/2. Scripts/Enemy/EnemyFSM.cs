@@ -102,14 +102,41 @@ public class EnemyFSM : BaseUnit
                 break;
         }
 
-        if (direction.sqrMagnitude > attackSqr)
-        {
-            currentState = State.Move;
-        }
-        else
+        // --- 벽 파괴 로직 추가 ---
+        // 이동 중인데 앞에 D_Wall이 감지되었다면 공격 상태로 전환
+        bool isPathBlockedByDWall = (currentState == State.Move && moveController.currentBlockingWall != null);
+
+        if (direction.sqrMagnitude <= attackSqr || isPathBlockedByDWall)
         {
             currentState = State.Attack;
         }
+        else
+        {
+            currentState = State.Move;
+        }
+        // -------------------------
+
+        switch (currentState)
+        {
+            case State.Idle: HandleIdleState(); break;
+            case State.Move: HandleMoveState(direction); break;
+            case State.Attack:
+                // 만약 벽 때문에 공격하는 거라면 벽을 향해 방향 수정
+                Vector3 attackDir = isPathBlockedByDWall ?
+                    (moveController.currentBlockingWall.transform.position - transform.position).normalized :
+                    direction;
+                HandleAttackState(attackDir);
+                break;
+        }
+
+        //if (direction.sqrMagnitude > attackSqr)
+        //{
+        //    currentState = State.Move;
+        //}
+        //else
+        //{
+        //    currentState = State.Attack;
+        //}
 
     }
 

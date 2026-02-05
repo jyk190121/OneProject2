@@ -12,6 +12,8 @@ public class MoveController
 
     int combinedLayerMask;
 
+    public GameObject currentBlockingWall; // 현재 앞을 막고 있는 벽 저장
+
     public MoveController(Rigidbody rb)
     {
         this.rb = rb;
@@ -21,6 +23,9 @@ public class MoveController
 
     public void Move(Vector3 direction, float speed)
     {
+        // 벽 정보 초기화
+        currentBlockingWall = null;
+
         Vector3 avoidanceDir = CalculateAvoidanceDirection(direction);
 
         if (avoidanceDir == Vector3.zero)
@@ -55,8 +60,14 @@ public class MoveController
         Vector3 normalizedTarget = targetDir.normalized;
 
         // SphereCast로 정면의 넓은 범위 감지
-        if (Physics.SphereCast(origin, radius, normalizedTarget, out hit, 5.0f, combinedLayerMask))
+        if (Physics.SphereCast(origin, radius, normalizedTarget, out hit, 2.0f, combinedLayerMask))
         {
+            // 만약 감지된 물체가 D_Wall 레이어라면 변수에 저장
+            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("D_Wall"))
+            {
+                currentBlockingWall = hit.collider.gameObject;
+            }
+
             Vector3 hitNormal = hit.normal;
             hitNormal.y = 0;
             Vector3 slideDir = Vector3.ProjectOnPlane(normalizedTarget, hitNormal).normalized;

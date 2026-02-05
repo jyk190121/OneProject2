@@ -88,33 +88,7 @@ public class EnemyFSM : BaseUnit
         //float distanceSqr = (targetPlayer.position - transform.position).sqrMagnitude;
         Vector3 direction = (targetPlayer.position - transform.position);
         direction.y = 0; // 높이 차이로 인해 땅을 보거나 하늘을 보지 않도록 고정
-
-        switch (currentState)
-        {
-            case State.Idle:
-                HandleIdleState();
-                break;
-            case State.Move:
-                HandleMoveState(direction);
-                break;
-            case State.Attack:
-                HandleAttackState(direction);
-                break;
-        }
-
-        // --- 벽 파괴 로직 추가 ---
-        // 이동 중인데 앞에 D_Wall이 감지되었다면 공격 상태로 전환
         bool isPathBlockedByDWall = (currentState == State.Move && moveController.currentBlockingWall != null);
-
-        if (direction.sqrMagnitude <= attackSqr || isPathBlockedByDWall)
-        {
-            currentState = State.Attack;
-        }
-        else
-        {
-            currentState = State.Move;
-        }
-        // -------------------------
 
         switch (currentState)
         {
@@ -127,6 +101,31 @@ public class EnemyFSM : BaseUnit
                     direction;
                 HandleAttackState(attackDir);
                 break;
+        }
+
+        //switch (currentState)
+        //{
+        //    case State.Idle:
+        //        HandleIdleState();
+        //        break;
+        //    case State.Move:
+        //        HandleMoveState(direction);
+        //        break;
+        //    case State.Attack:
+        //        HandleAttackState(direction);
+        //        break;
+        //}
+
+        // --- 벽 파괴 로직 추가 ---
+        // 이동 중인데 앞에 D_Wall이 감지되었다면 공격 상태로 전환
+
+        if (direction.sqrMagnitude <= attackSqr || isPathBlockedByDWall)
+        {
+            currentState = State.Attack;
+        }
+        else
+        {
+            currentState = State.Move;
         }
 
         //if (direction.sqrMagnitude > attackSqr)

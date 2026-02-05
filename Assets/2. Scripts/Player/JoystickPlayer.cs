@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class JoystickPlayer : BaseUnit
 {
-    public float speed;
+    //public float speed;
     public VariableJoystick variableJoystick;
     public Rigidbody rb;
 
@@ -38,7 +38,7 @@ public class JoystickPlayer : BaseUnit
         Vector3 direction = Vector3.forward * variableJoystick.Vertical + Vector3.right * variableJoystick.Horizontal;
 
         //rb.AddForce(direction * speed * Time.fixedDeltaTime, ForceMode.Impulse);
-        rb.linearVelocity = direction * speed;
+        rb.linearVelocity = direction * playerData.SPEED;
 
 
         //rb.rotation = Quaternion.LookRotation(direction * speed * Time.deltaTime);

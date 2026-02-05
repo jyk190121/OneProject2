@@ -60,7 +60,7 @@ public class Bullet : MonoBehaviour
 {
     [SerializeField] private float lifeTime = 3f;
     //public GameObject bulletEffect;
-    public GameObject wallEffect;
+    //public GameObject wallEffect;
 
     private IObjectPool<GameObject> targetPool;
     private Rigidbody rb;
@@ -111,8 +111,15 @@ public class Bullet : MonoBehaviour
 
             if (isDWall)
             {
-                DestroyEffect(contact);
-                Destroy(collision.gameObject);
+                //DestroyEffect(contact);
+                //Destroy(collision.gameObject);
+                ABOX Abox = collision.gameObject.GetComponent<ABOX>();
+                if (Abox != null)
+                {
+                    //DestroyEffect(contact);
+                    //Destroy(collision.gameObject);
+                    Abox.TakeDamage(1f);
+                }
             }
             ReturnToPool();
         }
@@ -144,15 +151,15 @@ public class Bullet : MonoBehaviour
         EffectPooler.Instance.StartCoroutine(EffectPooler.Instance.ReturnEffectAfterTime(effectName, effect, 0.5f));
     }
 
-    private void DestroyEffect(ContactPoint contact)
-    {
-        Quaternion rot = Quaternion.LookRotation(contact.normal);
-        if (wallEffect != null)
-        {
-            GameObject effect = Instantiate(wallEffect, contact.point, rot);
-            Destroy(effect, 0.5f); // 이펙트도 풀링하면 좋지
-        }
-    }
+    //private void DestroyEffect(ContactPoint contact)
+    //{
+    //    Quaternion rot = Quaternion.LookRotation(contact.normal);
+    //    if (wallEffect != null)
+    //    {
+    //        GameObject effect = Instantiate(wallEffect, contact.point, rot);
+    //        Destroy(effect, 0.5f); // 이펙트도 풀링하면 좋지
+    //    }
+    //}
     private void ReturnToPool()
     {
         if (gameObject.activeSelf)

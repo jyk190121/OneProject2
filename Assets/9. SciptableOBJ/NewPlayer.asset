@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c5da586490f1c645852a89864cc283f, type: 3}
   m_Name: NewPlayer
   m_EditorClassIdentifier: 
-  HP: 5000000
-  SPEED: 20
+  HP: 300
+  SPEED: 5
   ATT: 12
   GUN: {fileID: 5030284608985399073, guid: f3e49ab19a3d90645a9293025d4426a5, type: 3}
-  ITEMS:
-  - {fileID: 11400000, guid: 5fedd029a8c36cb4fb0c4ccd60a4fb5a, type: 2}
+  ITEMS: []
   DIEEFFECT: {fileID: 100000, guid: 5b6c2f68addb63847b151f0d41a9d3b1, type: 3}

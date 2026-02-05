@@ -59,7 +59,12 @@ public class EnemyBullet : MonoBehaviour
             if (isDWall)
             {
                 DestroyEffect(contact);
-                Destroy(collision.gameObject);
+                ABOX Abox = collision.gameObject.GetComponent<ABOX>();
+                if (Abox != null)
+                {
+                    //Destroy(collision.gameObject);
+                    Abox.TakeDamage(1f);
+                }
             }
             ReturnToPool();
         }

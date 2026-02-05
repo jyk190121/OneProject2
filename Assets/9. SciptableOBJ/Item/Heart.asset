@@ -16,5 +16,5 @@ MonoBehaviour:
   att: 0
   attSpeed: 0
   moveSpeed: 0
-  itemPrefab: {fileID: 0}
+  itemPrefab: {fileID: 8289592065748413607, guid: 7b37e7e4aefd25241a194e59f001fe24, type: 3}
   effect: {fileID: 0}

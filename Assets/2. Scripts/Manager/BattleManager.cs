@@ -17,10 +17,11 @@ public class BattleManager : MonoBehaviour
     public VariableJoystick joystick;
     public Image playerHP_bar;
 
-    public GameObject wallA;       // 떨어지는 블록 (밀림)
+    public GameObject box_A;       // 떨어지는 블록 (밀림)
+    public GameObject box_B;       // 떨어지는 블록 (밀림)
     public GameObject wallB;       // Y축 고정 블록 (안밀림)
 
-    GameObject[] block = new GameObject[2];
+    GameObject[] block = new GameObject[3];
 
     void Awake()
     {
@@ -32,8 +33,9 @@ public class BattleManager : MonoBehaviour
         {
             DontDestroyOnLoad(Instance);
         }
-        block[0] = wallA;
-        block[1] = wallB;
+        block[0] = box_A;
+        block[1] = box_B;
+        block[2] = wallB;
     }
 
     public void RegisterPlayer(JoystickPlayer player)
@@ -122,8 +124,9 @@ public class BattleManager : MonoBehaviour
         {
             yield return new WaitForSeconds(5f); // 15초마다 블록 생성 파동 시작
 
-            int r = Random.Range(0, 2);
-            int ea = Random.Range(1, 10); // 최소 1개는 생성하도록 설정
+            int r = Random.Range(0, 3);
+
+            int ea = Random.Range(1, 10);
 
             yield return StartCoroutine(CreateBlock(r, ea));
         }
@@ -135,7 +138,7 @@ public class BattleManager : MonoBehaviour
         {
             float clampX = Random.Range(-40f, 40.1f);
             float clampZ = Random.Range(-45f, 45.1f);
-            float y = (r == 0) ? Random.Range(0f, 15f) : -0.5f;
+            float y = (r != 2) ? Random.Range(0f, 15f) : -0.5f;
 
             Vector3 spawnPosition = new Vector3(clampX, y, clampZ);
 

@@ -28,7 +28,8 @@ public abstract class Dwall : MonoBehaviour
         if (destroyEffect != null)
         {
             // 이전에 만든 이펙트 풀링이나 Instantiate 사용
-            Instantiate(destroyEffect, transform.position, transform.rotation);
+            GameObject effect = Instantiate(destroyEffect, transform.position, transform.rotation);
+            Destroy(effect, 1.5f);
         }
 
         Destroy(gameObject);

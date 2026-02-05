@@ -10,7 +10,8 @@ public class Player : ScriptableObject
 {
     [Header("플레이어 속성")]
     public float HP;
-    public float SPEED;
+    public float MOVESPEED;
+    public float ATTSPEED;
     public float ATT;
 
     [Header("보유 총")]

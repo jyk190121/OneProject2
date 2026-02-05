@@ -38,7 +38,7 @@ public class JoystickPlayer : BaseUnit
         Vector3 direction = Vector3.forward * variableJoystick.Vertical + Vector3.right * variableJoystick.Horizontal;
 
         //rb.AddForce(direction * speed * Time.fixedDeltaTime, ForceMode.Impulse);
-        rb.linearVelocity = direction * playerData.SPEED;
+        rb.linearVelocity = direction * playerData.MOVESPEED;
 
 
         //rb.rotation = Quaternion.LookRotation(direction * speed * Time.deltaTime);

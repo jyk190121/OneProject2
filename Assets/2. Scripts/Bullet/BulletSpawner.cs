@@ -7,7 +7,7 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     //[SerializeField] private GameObject bulletPrefab; // 생성할 총알 프리팹
     [SerializeField] private Transform spawnPoint;      // 총알이 나올 위치 (입구)
     [SerializeField] private float bulletSpeed = 10f;   // 총알 속도
-    [SerializeField] private float fireRate = 0.2f;     // 발사 속도
+    [SerializeField] private float fireRate = 0.01f;     // 발사 속도
     public GameObject player;                           // 플레이어
     JoystickPlayer joysticPlayer;
 
@@ -70,7 +70,15 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
         {
             // 중요: 풀링된 총알은 이전의 속도가 남아있을 수 있으므로 초기화 후 부여
             rb.linearVelocity = Vector3.zero;
-            rb.linearVelocity = spawnPoint.forward * bulletSpeed;
+
+            if(joysticPlayer.playerData.ATTSPEED !=0)
+            { 
+                rb.linearVelocity = spawnPoint.forward * joysticPlayer.playerData.ATTSPEED;
+            }
+            else
+            {
+                rb.linearVelocity = spawnPoint.forward * bulletSpeed;
+            }
         }
 
         //if (bulletPrefab == null)

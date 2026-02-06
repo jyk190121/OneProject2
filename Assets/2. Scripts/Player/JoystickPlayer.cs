@@ -76,6 +76,6 @@ public class JoystickPlayer : BaseUnit
         }
 
         // 애니메이션 실행 후 삭제 등 추가 로직
-         Destroy(gameObject, 1.0f);
+         Destroy(gameObject);
     }
 }

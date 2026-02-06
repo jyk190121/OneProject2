@@ -16,6 +16,9 @@ public class Enemy : ScriptableObject
     [Range(0.1f, 10f)]
     public float ATTSPEED;
 
+    [Header("해당 타입 몬스터 잡았을 때 줄 점수")]
+    public int SCORE;
+
     [Header("보유 총")]
     public GameObject GUN;
 

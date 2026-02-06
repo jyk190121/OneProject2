@@ -15,8 +15,9 @@ MonoBehaviour:
   type: A
   HP: 60
   ATT: 4
-  MOVESPEED: 1.4
+  MOVESPEED: 2.5
   ATTSPEED: 0.6
+  SCORE: 40
   GUN: {fileID: 160796, guid: b955daae02e019d45a8fb68cfd843784, type: 3}
   ITEMS: []
   PREFAB: {fileID: 6180285084413637326, guid: 599519992bda7c14399432c05b55666c, type: 3}

@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class BattleManager : MonoBehaviour
 {
-    public static BattleManager Instance; // 어디서든 접근 가능하게
+    public static BattleManager Instance;
     public List<JoystickPlayer> joystickPlayers = new List<JoystickPlayer>();
     public bool isStarting;
     public Image countImg;
@@ -19,6 +19,14 @@ public class BattleManager : MonoBehaviour
     public GameObject box_A;       // 떨어지는 블록 (밀림)
     public GameObject box_B;       // 떨어지는 블록 (밀림)
     public GameObject wallB;       // Y축 고정 블록 (안밀림)
+
+    // [추가] 생성된 블록들을 추적하기 위한 리스트
+    private List<GameObject> activeBlocks = new List<GameObject>();
+
+    // [추가] 맵 범위 설정
+    private float limitX = 50f;
+    private float limitZ = 50f;
+    private float limitY = -10f; // 낭떠러지 체크용
 
     GameObject[] block = new GameObject[3];
 
@@ -39,6 +47,24 @@ public class BattleManager : MonoBehaviour
         block[2] = wallB;
     }
 
+
+    void Start()
+    {
+        countImg.gameObject.SetActive(true);
+        StartCoroutine(StartDelayRoutine());
+        //StartCoroutine(StartBlockCreate());
+        // [수정] Update 대신 Start에서 한 번만 호출하여 반복 루프를 돌립니다.
+        StartCoroutine(BlockSpawnLoop());
+    }
+    void Update()
+    {
+        // 게임 중일 때만 체크 (성능을 위해 FixedUpdate에서 호출해도 좋습니다)
+        if (!isGameOver)
+        {
+            CheckBlocksBounds();
+        }
+    }
+
     public void RegisterPlayer(JoystickPlayer player)
     {
         if (!joystickPlayers.Contains(player))
@@ -55,15 +81,6 @@ public class BattleManager : MonoBehaviour
             }
 
         }
-    }
-
-    void Start()
-    {
-        countImg.gameObject.SetActive(true);
-        StartCoroutine(StartDelayRoutine());
-        //StartCoroutine(StartBlockCreate());
-        // [수정] Update 대신 Start에서 한 번만 호출하여 반복 루프를 돌립니다.
-        StartCoroutine(BlockSpawnLoop());
     }
     IEnumerator StartDelayRoutine()
     {
@@ -85,7 +102,6 @@ public class BattleManager : MonoBehaviour
         countImg.gameObject.SetActive(false);
         countTxt.text = "";
     }
-
     //IEnumerator StartBlockCreate()
     //{
     //    int r = Random.Range(0, 2);
@@ -139,7 +155,7 @@ public class BattleManager : MonoBehaviour
     {
         for (int i = 0; i < ea; i++)
         {
-            float clampX = Random.Range(-40f, 40.1f);
+            float clampX = Random.Range(-45f, 45.1f);
             float clampZ = Random.Range(-45f, 45.1f);
             float y = (r != 2) ? Random.Range(0f, 15f) : -0.5f;
 
@@ -149,6 +165,8 @@ public class BattleManager : MonoBehaviour
             // Quaternion.identity는 회전값 없음(0,0,0)을 의미합니다.
             GameObject newBlock = Instantiate(block[r], transform);
             newBlock.transform.position = spawnPosition;
+
+            activeBlocks.Add(newBlock);
 
             yield return new WaitForSeconds(1f); // 블록 하나 생성 후 대기 시간
         }
@@ -165,5 +183,35 @@ public class BattleManager : MonoBehaviour
         if (em != null) em.createEnemyStop = true;
 
         // 필요하다면 여기서 결과창 UI 띄우기
+    }
+
+
+    private void CheckBlocksBounds()
+    {
+        // [중요] 리스트 순회 시 원소를 삭제해야 하므로 반드시 역순(for)으로 순회합니다.
+        for (int i = activeBlocks.Count - 1; i >= 0; i--)
+        {
+            GameObject target = activeBlocks[i];
+
+            // 이미 파괴되었거나 null인 경우 리스트에서 제거
+            if (target == null)
+            {
+                activeBlocks.RemoveAt(i);
+                continue;
+            }
+
+            Vector3 pos = target.transform.position;
+
+            // 설정한 범위를 하나라도 벗어났는지 체크
+            if (Mathf.Abs(pos.x) > limitX || Mathf.Abs(pos.z) > limitZ || pos.y < limitY)
+            {
+                // 씬에서 제거
+                Destroy(target);
+                // 리스트에서 제거
+                activeBlocks.RemoveAt(i);
+
+                Debug.Log($"박스가 범위를 벗어나 제거되었습니다: {pos}");
+            }
+        }
     }
 }

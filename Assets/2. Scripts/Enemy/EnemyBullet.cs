@@ -77,7 +77,7 @@ public class EnemyBullet : MonoBehaviour
             {
                 unit.TakeDamage(this.damage);
                 //ReturnToPool();
-                print($"플레이어 HP : {unit.currentHP}");
+                //print($"플레이어 HP : {unit.currentHP}");
             }
 
             ReturnToPool();

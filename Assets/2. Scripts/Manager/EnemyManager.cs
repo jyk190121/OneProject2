@@ -117,6 +117,7 @@ public class EnemyManager : MonoBehaviour
         // 게임 오버가 아닐 때만 무한 반복
         while (true)
         {
+            print($"현재 몇마리 :{enemyList.Count}");
             // 게임 오버 시 정리 로직
             if (BattleManager.Instance.isGameOver || createEnemyStop)
             {

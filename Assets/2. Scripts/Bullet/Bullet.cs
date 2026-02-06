@@ -132,7 +132,7 @@ public class Bullet : MonoBehaviour
             {
                 unit.TakeDamage(this.damage);
                 //ReturnToPool();
-                print($"{unit.name} HP : {unit.currentHP}");
+                //print($"{unit.name} HP : {unit.currentHP}");
 
             }
             ReturnToPool();

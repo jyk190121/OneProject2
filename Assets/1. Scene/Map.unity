@@ -5557,7 +5557,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 04d73b9ac61f8284e92d65b1afadc528, type: 2}
   - {fileID: 11400000, guid: dfb9344d2f0f7f64b881a0a2c27cd917, type: 2}
   - {fileID: 11400000, guid: 48decd9bdb9a67d4082d14ef897adade, type: 2}
-  enemyPos:
+  spawnPoints:
   - {fileID: 2146116766}
   - {fileID: 156910178}
   - {fileID: 474830473}

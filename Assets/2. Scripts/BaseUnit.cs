@@ -10,7 +10,8 @@ public class BaseUnit : MonoBehaviour
 
     // 현재 실시간으로 변하는 스탯
     public float currentHP;
-    protected float maxHP; // 비율 계산을 위해 최대 체력 저장 필요
+    // 비율 계산을 위해 최대 체력 저장 필요
+    protected float maxHP;
     protected bool isDead = false;
 
     // 초기화 함수
@@ -33,6 +34,8 @@ public class BaseUnit : MonoBehaviour
 
     protected virtual void Die()
     {
+        if (isDead) return;
+
         isDead = true;
         //gameObject.SetActive(false);
         // 사망 이펙트 생성
@@ -45,7 +48,7 @@ public class BaseUnit : MonoBehaviour
             Destroy(effect, 1.5f);
         }
 
-        Destroy(gameObject);
+        //Destroy(gameObject);
     }
 
     public void Heal(float heal)

@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using UnityEngine.UI;
 
 public class BattleManager : MonoBehaviour
@@ -22,6 +21,8 @@ public class BattleManager : MonoBehaviour
     public GameObject wallB;       // Y축 고정 블록 (안밀림)
 
     GameObject[] block = new GameObject[3];
+
+    public bool isGameOver = false;
 
     void Awake()
     {
@@ -120,9 +121,11 @@ public class BattleManager : MonoBehaviour
     // [추가] 블록 생성을 주기적으로 반복하는 루프
     IEnumerator BlockSpawnLoop()
     {
-        while (true) // 게임이 끝날 때까지 반복
+        while (!isGameOver) // 게임이 끝날 때까지 반복
         {
-            yield return new WaitForSeconds(5f); // 15초마다 블록 생성 파동 시작
+            yield return new WaitForSeconds(5f);
+
+            if (isGameOver) break; // 대기 시간 중에 게임이 끝났을 경우 탈출
 
             int r = Random.Range(0, 3);
 
@@ -149,5 +152,18 @@ public class BattleManager : MonoBehaviour
 
             yield return new WaitForSeconds(1f); // 블록 하나 생성 후 대기 시간
         }
+    }
+
+    public void GameOver()
+    {
+        if (isGameOver) return;
+
+        isGameOver = true;
+
+        // 에너미 매니저에게 정지 신호 전달
+        EnemyManager em = FindFirstObjectByType<EnemyManager>();
+        if (em != null) em.createEnemyStop = true;
+
+        // 필요하다면 여기서 결과창 UI 띄우기
     }
 }

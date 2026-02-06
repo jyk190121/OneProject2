@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
+using Key = UnityEngine.InputSystem.Key;
 
 public class JoystickPlayer : BaseUnit
 {
@@ -35,11 +35,23 @@ public class JoystickPlayer : BaseUnit
             return;
         }
 
-        Vector3 direction = Vector3.forward * variableJoystick.Vertical + Vector3.right * variableJoystick.Horizontal;
+        // 조이스틱 값 + 키보드(Input.cs) 값을 더합니다.
+        float h = variableJoystick.Horizontal + Input.GetAxis("Horizontal");
+        float v = variableJoystick.Vertical + Input.GetAxis("Vertical");
+
+        // 방향 벡터 생성 (3D 환경이므로 x와 z축 사용)
+        Vector3 direction = (Vector3.forward * v) + (Vector3.right * h);
+
+        // 대각선 이동 속도 보정 (길이가 1을 넘지 않도록 normalized)
+        if (direction.magnitude > 1f)
+        {
+            direction.Normalize();
+        }
+
+        //Vector3 direction = Vector3.forward * variableJoystick.Vertical + Vector3.right * variableJoystick.Horizontal;
 
         //rb.AddForce(direction * speed * Time.fixedDeltaTime, ForceMode.Impulse);
         rb.linearVelocity = direction * playerData.MOVESPEED;
-
 
         //rb.rotation = Quaternion.LookRotation(direction * speed * Time.deltaTime);
         // 입력값의 크기가 아주 작을 때(손을 뗐을 때)는 회전하지 않도록 함
@@ -51,5 +63,19 @@ public class JoystickPlayer : BaseUnit
             // 즉시 회전시키거나, Lerp를 사용하여 부드럽게 회전시킬 수 있음
             rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 5f);
         }
+    }
+
+    protected override void Die()
+    {
+        base.Die(); // 공통 로직(이펙트 생성 등) 실행
+
+        // 플레이어 전용: 매니저에게 게임 오버 알림
+        if (BattleManager.Instance != null)
+        {
+            BattleManager.Instance.GameOver();
+        }
+
+        // 애니메이션 실행 후 삭제 등 추가 로직
+         Destroy(gameObject, 1.0f);
     }
 }

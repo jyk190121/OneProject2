@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: NewPlayer
   m_EditorClassIdentifier: 
   HP: 300
-  MOVESPEED: 15
-  ATTSPEED: 30
-  ATT: 120
+  MOVESPEED: 5
+  ATTSPEED: 10
+  ATT: 12
   GUN: {fileID: 5030284608985399073, guid: f3e49ab19a3d90645a9293025d4426a5, type: 3}
   ITEMS: []
   DIEEFFECT: {fileID: 100000, guid: 5b6c2f68addb63847b151f0d41a9d3b1, type: 3}

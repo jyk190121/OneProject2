@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
@@ -26,13 +27,33 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
     void Update()
     {
+        //if (BattleManager.Instance.isStarting) return;
+
+        //// 버튼이 눌려있고, 다음 발사 시간이 되었을 때
+        //if (isPressed && Time.time >= nextFireTime)
+        //{
+        //    FireBullet();
+        //    nextFireTime = Time.time + fireRate; // 다음 발사 시간 갱신
+        //}
+
         if (BattleManager.Instance.isStarting) return;
 
-        // 버튼이 눌려있고, 다음 발사 시간이 되었을 때
-        if (isPressed && Time.time >= nextFireTime)
+        // 1. UI 버튼(isPressed)
+        // 2. 키보드 X 또는 Space
+        // 3. 게임패드의 남쪽 버튼 (A/X)
+        bool isFiring = isPressed ||
+                        Input.GetKey(Key.X) ||
+                        Input.GetKey(Key.Space) ||
+                        Input.GetGamepadButton();
+
+        // 발사 중일 때 회전 제어 (선택 사항: 발사 중에는 회전을 막고 싶다면)
+        if (isFiring) joysticPlayer.canRotate = false;
+        else if (!isPressed) joysticPlayer.canRotate = true; // 버튼에서 손 뗐을 때만 다시 회전 허용
+
+        if (isFiring && Time.time >= nextFireTime)
         {
             FireBullet();
-            nextFireTime = Time.time + fireRate; // 다음 발사 시간 갱신
+            nextFireTime = Time.time + fireRate;
         }
     }
 

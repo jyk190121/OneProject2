@@ -231,4 +231,14 @@ public class EnemyFSM : BaseUnit
 
         isAttacking = false;
     }
+
+    protected override void Die()
+    {
+        base.Die(); // 공통 로직 실행
+
+        // 에너미 전용: 점수 획득이나 특정 아이템 드랍 로직 추가 가능
+        Debug.Log("적 처치!");
+
+        Destroy(gameObject); // 즉시 삭제 혹은 지연 삭제
+    }
 }

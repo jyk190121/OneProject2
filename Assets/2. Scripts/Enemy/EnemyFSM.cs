@@ -41,7 +41,6 @@ public class EnemyFSM : BaseUnit
 
     void Awake()
     {
-
         if (enemyData != null)
         {
             // SO에서 스탯 가져와서 현재 체력 초기화
@@ -194,6 +193,7 @@ public class EnemyFSM : BaseUnit
             lookDir.y = 0; // 적이 바닥을 보거나 하늘을 보지 않도록 고정
             if (lookDir != Vector3.zero)
             {
+                moveController.Stop();
                 //transform.rotation = Quaternion.LookRotation(lookDir);
                 Quaternion targetRotation = Quaternion.LookRotation(lookDir);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotaionSpeed);
@@ -203,26 +203,49 @@ public class EnemyFSM : BaseUnit
         }
 
         //yield return new WaitForSeconds(0.5f);
+        //GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet(enemyData.GUN);
 
-        GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet();
+        //GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet();
 
-        //bulletObj.transform.SetParent(null);
-        bulletObj.transform.position = bulletPos.position;
-        //bulletObj.transform.rotation = Quaternion.LookRotation(direction);
-        bulletObj.transform.rotation = transform.rotation;
+        ////bulletObj.transform.SetParent(null);
+        //bulletObj.transform.position = bulletPos.position;
+        ////bulletObj.transform.rotation = Quaternion.LookRotation(direction);
+        //bulletObj.transform.rotation = transform.rotation;
 
-        EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
+        //EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
 
-        enemyBulletScript.SetDamage(enemyData.ATT);
+        //enemyBulletScript.SetDamage(enemyData.ATT);
 
-        if (enemyBulletScript != null)
+        //if (enemyBulletScript != null)
+        //{
+        //    Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
+        //    if (rb != null)
+        //    {
+        //        //rb.linearVelocity = Vector3.zero; // 이전 속도 초기화
+        //        //rb.linearVelocity = direction * 10f; // 새 방향으로 발사
+        //        rb.linearVelocity = transform.forward * 5f;
+        //    }
+        //}
+
+        // [수정] SO에 등록된 총알 프리팹을 인자로 전달하여 가져옴
+        if (enemyData.GUN != null)
         {
-            Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
-            if (rb != null)
+            // GetBullet에 적마다 다른 총알 프리팹을 전달
+            GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet(enemyData.GUN); // GUN 필드 사용
+
+            bulletObj.transform.position = bulletPos.position;
+            bulletObj.transform.rotation = transform.rotation;
+
+            EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
+            if (enemyBulletScript != null)
             {
-                //rb.linearVelocity = Vector3.zero; // 이전 속도 초기화
-                //rb.linearVelocity = direction * 10f; // 새 방향으로 발사
-                rb.linearVelocity = transform.forward * 5f;
+                enemyBulletScript.SetDamage(enemyData.ATT);
+
+                Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.linearVelocity = transform.forward * 5f; // 속도는 SO에 맞춰 조절 가능
+                }
             }
         }
 

@@ -3,7 +3,7 @@ using UnityEngine.AI;
 public class MoveController
 {
     Rigidbody rb;
-    float rotationSpeed = 10f;   // 회전 속도 (높을수록 빠르게 회전)
+    float rotationSpeed = 5f;     // 회전 속도 (높을수록 빠르게 회전)
     float avoidRange = 1.5f;      // 장애물 감지 거리
     //NavMeshAgent agent; // Rigidbody 대신 사용
 

@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: -2208810662260774128}
   - component: {fileID: 2178235259016610994}
   m_Layer: 8
-  m_Name: FX_GunFlash
+  m_Name: FX_GunFlash 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f1b0fea076fb0574d868f6e3d9523f52, type: 2}
+  - {fileID: 2100000, guid: aac40ce1c3f88864d898c5e839f5ce6d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -129,7 +129,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lifeTime: 3
-  wallEffect: {fileID: 180128, guid: 6586ff0f14125534cae2f5d8f04b7871, type: 3}
+  bulletEffect: {fileID: 7484801616343357679, guid: 94f81e1da38453b458e3c682916121cc, type: 3}
 --- !u!65 &2178235259016610994
 BoxCollider:
   m_ObjectHideFlags: 0

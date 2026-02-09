@@ -14,7 +14,7 @@ public class EnemyManager : MonoBehaviour
     public Transform[] spawnPoints;                 // 적 생성 위치
     public bool createEnemyStop = false;
 
-    [SerializeField] private int maxEnemyCount = 100; // 최대 적 수
+    [SerializeField] private int maxEnemyCount = 300; // 최대 적 수
     [SerializeField] private float spawnDelay = 0.5f; // 생성 간격
 
     private List<GameObject> enemyList = new List<GameObject>();

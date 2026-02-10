@@ -6,6 +6,7 @@ public class IntroController : MonoBehaviour
 {
     public VideoPlayer videoPlayer;
     public Button skipBtn;
+    public Image backImg;
 
     void OnEnable()
     {
@@ -17,6 +18,7 @@ public class IntroController : MonoBehaviour
     }
     void Start()
     {
+        backImg.gameObject.SetActive(true);
         skipBtn.gameObject.SetActive(false);
         skipBtn.onClick.AddListener(() => OnVideoFinished(videoPlayer));
     }
@@ -37,6 +39,7 @@ public class IntroController : MonoBehaviour
     {
         if (skipBtn != null)
         {
+            backImg.gameObject.SetActive(false);
             skipBtn.gameObject.SetActive(true); // 버튼 보이기
         }
     }

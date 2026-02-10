@@ -32,30 +32,38 @@ public class BattleManager : MonoBehaviour
 
     public bool isGameOver = false;
 
+
+    private void OnEnable()
+    {
+        isStarting = true;
+
+        StartCoroutine(StartDelayRoutine());
+        StartCoroutine(BlockSpawnLoop());
+    }
+
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+    }
+
     void Awake()
     {
         if(Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(Instance);
         }
         else
         {
-            DontDestroyOnLoad(Instance);
+            Destroy(gameObject);
+            return;
         }
         block[0] = box_A;
         block[1] = box_B;
         block[2] = wallB;
+
     }
 
-
-    void Start()
-    {
-        countImg.gameObject.SetActive(true);
-        StartCoroutine(StartDelayRoutine());
-        //StartCoroutine(StartBlockCreate());
-        // [수정] Update 대신 Start에서 한 번만 호출하여 반복 루프를 돌립니다.
-        StartCoroutine(BlockSpawnLoop());
-    }
     void Update()
     {
         // 게임 중일 때만 체크 (성능을 위해 FixedUpdate에서 호출해도 좋습니다)
@@ -84,20 +92,44 @@ public class BattleManager : MonoBehaviour
     }
     IEnumerator StartDelayRoutine()
     {
-        isStarting = true;
+        //yield return new WaitForSecondsRealtime(0.2f); // 최소한의 숨 고르기
+        //yield return new WaitUntil(() => Time.deltaTime < 0.05f); // 프레임 드랍이 멈출 때까지 대기
 
-        countTxt.text = "3";
-        yield return new WaitForSeconds(1f);
-        countTxt.text = "2";
-        yield return new WaitForSeconds(1f);
-        countTxt.text = "1";
-        yield return new WaitForSeconds(1f);
+        //countImg.gameObject.SetActive(true);
+
+        //countTxt.text = "3";
+        //yield return new WaitForSecondsRealtime(1f);
+
+        //countTxt.text = "2";
+        //yield return new WaitForSecondsRealtime(1f);
+
+        //countTxt.text = "1";
+        //yield return new WaitForSecondsRealtime(1f);
+
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        if (!isStarting) yield break;
+
+        string[] counts = { "3", "2", "1" };
+        foreach (var c in counts)
+        {
+            countTxt.text = c;
+            yield return new WaitForSecondsRealtime(1f);
+        }
+
+        //countTxt.text = "3";
+        //yield return new WaitForSeconds(0.554f);
+        ////yield return new WaitForSeconds(1f);
+        //countTxt.text = "2";
+        //yield return new WaitForSeconds(1f);
+        //countTxt.text = "1";
+        //yield return new WaitForSeconds(1f);
 
         countTxt.color = Color.blue;
         countTxt.text = "GO";
         isStarting = false;
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
         // countLabel.style.display = DisplayStyle.None; // UI 숨기기
         countImg.gameObject.SetActive(false);
         countTxt.text = "";

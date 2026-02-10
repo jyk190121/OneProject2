@@ -6762,7 +6762,7 @@ MonoBehaviour:
   - name: BulletEffect
     prefab: {fileID: 5351322915541471630, guid: 942b6a8f1c54e7b46aa3467a4260298d, type: 3}
   - name: EnemyEffect
-    prefab: {fileID: 194062, guid: 8c27aeead6d968e4ba986702d6b84335, type: 3}
+    prefab: {fileID: 5351322915541471630, guid: 942b6a8f1c54e7b46aa3467a4260298d, type: 3}
 --- !u!114 &2084492502
 MonoBehaviour:
   m_ObjectHideFlags: 0

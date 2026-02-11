@@ -13,7 +13,9 @@ public static class Input
     private static Dictionary<string, float> axisValues = new Dictionary<string, float>
     {
         { "Horizontal", 0f },
-        { "Vertical", 0f }
+        { "Vertical", 0f },
+        { "LookHorizontal", 0f }, // 회전용 X
+        { "LookVertical", 0f }    // 회전용 Y
     };
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -31,6 +33,8 @@ public static class Input
         {
             UpdateAxis("Horizontal", GetAxisRaw("Horizontal"));
             UpdateAxis("Vertical", GetAxisRaw("Vertical"));
+            UpdateAxis("LookHorizontal", GetLookAxisRaw("Horizontal"));
+            UpdateAxis("LookVertical", GetLookAxisRaw("Vertical"));
         }
 
         private void UpdateAxis(string name, float target)
@@ -60,6 +64,21 @@ public static class Input
 
             return Mathf.Clamp(val, -1f, 1f);
         }
+
+        // 회전 전용 Raw 입력 체크 함수
+        private float GetLookAxisRaw(string axisName)
+        {
+            float val = 0f;
+            // 게임패드 오른쪽 스틱
+            if (Gamepad.current != null)
+            {
+                if (axisName == "Horizontal") val = Gamepad.current.rightStick.x.ReadValue();
+                else if (axisName == "Vertical") val = Gamepad.current.rightStick.y.ReadValue();
+            }
+            return val;
+        }
+
+     
     }
 
     // --- 키보드 관련 함수들 ---
@@ -74,7 +93,7 @@ public static class Input
     public static bool GetKey(Key key) => Keyboard.current != null && Keyboard.current[key].isPressed;
 
     // 게임패드 특정 버튼 확인 (남쪽 버튼: Xbox의 A, PS의 X)
-    public static bool GetGamepadButton() => Gamepad.current != null && Gamepad.current.buttonSouth.isPressed;
+    public static bool GetGamepadButton() => Gamepad.current != null && Gamepad.current.rightTrigger.isPressed;
 
     // --- 축(Axis) 관련 ---
     public static float GetAxis(string axisName) => axisValues.ContainsKey(axisName) ? axisValues[axisName] : 0f;
@@ -131,7 +150,7 @@ public static class Input
         float val = 0f;
 
         // 1. 키보드 입력 체크
-        if (Keyboard.current != null && Gamepad.current == null)
+        if (Keyboard.current != null)
         {
             if (axisName == "Horizontal")
             {
@@ -146,7 +165,7 @@ public static class Input
         }
 
         // 2. 게임패드 입력 체크
-        if (Gamepad.current != null && Keyboard.current == null)
+        if (Gamepad.current != null)
         {
             if (axisName == "Horizontal")
             {
@@ -168,5 +187,18 @@ public static class Input
 
         // 최종 값 제한 (-1 ~ 1 사이로 고정)
         return Mathf.Clamp(val, -1f, 1f);
+    }
+
+    // 마우스 월드 좌표를 가져오는 함수 추가 (회전 처리에 필수)
+    public static Vector3 GetMouseWorldPosition()
+    {
+        if (Mouse.current == null) return Vector3.zero;
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+        Ray ray = Camera.main.ScreenPointToRay(mousePos);
+        if (Physics.Raycast(ray, out RaycastHit hit, 100f)) // 바닥 레이어 등을 설정하는 것이 좋음
+        {
+            return hit.point;
+        }
+        return Vector3.zero;
     }
 }

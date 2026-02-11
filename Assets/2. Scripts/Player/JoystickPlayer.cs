@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using Key = UnityEngine.InputSystem.Key;
 
 public class JoystickPlayer : BaseUnit
 {
@@ -58,6 +57,8 @@ public class JoystickPlayer : BaseUnit
         //rb.AddForce(direction * speed * Time.fixedDeltaTime, ForceMode.Impulse);
         rb.linearVelocity = direction * playerData.MOVESPEED;
 
+        HandleRotation(direction);
+
         // 입력값의 크기가 아주 작을 때(손을 뗐을 때)는 회전하지 않도록 함
         if (canRotate && direction.sqrMagnitude > 0.01f)
         {
@@ -82,6 +83,41 @@ public class JoystickPlayer : BaseUnit
         }
 
         // 애니메이션 실행 후 삭제 등 추가 로직
-         Destroy(gameObject);
+        Destroy(gameObject);
+    }
+
+    private void HandleRotation(Vector3 moveDir)
+    {
+        if (!canRotate) return;
+
+        Vector3 lookDir = Vector3.zero;
+
+        // [A] 게임패드 오른쪽 스틱 입력 확인
+        float rh = Input.GetAxis("LookHorizontal");
+        float rv = Input.GetAxis("LookVertical");
+        Vector3 stickLookDir = (Vector3.forward * rv) + (Vector3.right * rh);
+
+        if (stickLookDir.sqrMagnitude > 0.1f)
+        {
+            lookDir = stickLookDir;
+        }
+        // [B] 마우스 클릭 중이거나 특정 조건일 때 마우스 방향 주시
+        else if (Input.GetMouseButton(1)) // 오른쪽 마우스 버튼 누를 때만 회전
+        {
+            Vector3 mouseWorldPos = Input.GetMouseWorldPosition();
+            lookDir = (mouseWorldPos - transform.position);
+            lookDir.y = 0;
+        }
+        // [C] 별도의 회전 입력이 없으면 이동 방향을 바라봄 (기존 방식)
+        else if (moveDir.sqrMagnitude > 0.01f)
+        {
+            lookDir = moveDir;
+        }
+
+        if (lookDir != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(lookDir);
+            rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f);
+        }
     }
 }

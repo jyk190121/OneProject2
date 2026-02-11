@@ -106,7 +106,7 @@ public class BattleManager : MonoBehaviour
         //countTxt.text = "1";
         //yield return new WaitForSecondsRealtime(1f);
 
-        yield return new WaitForSecondsRealtime(0.5f);
+        yield return new WaitForSecondsRealtime(0.3f);
 
         if (!isStarting) yield break;
 

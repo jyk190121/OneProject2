@@ -8,7 +8,7 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     //[SerializeField] private GameObject bulletPrefab; // 생성할 총알 프리팹
     [SerializeField] private Transform spawnPoint;      // 총알이 나올 위치 (입구)
     [SerializeField] private float bulletSpeed = 10f;   // 총알 속도
-    [SerializeField] private float fireRate = 0.01f;     // 발사 속도
+    [SerializeField] private float fireRate = 0.1f;     // 발사 속도
     public GameObject player;                           // 플레이어
     JoystickPlayer joysticPlayer;
 
@@ -27,22 +27,13 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
     void Update()
     {
-        //if (BattleManager.Instance.isStarting) return;
-
-        //// 버튼이 눌려있고, 다음 발사 시간이 되었을 때
-        //if (isPressed && Time.time >= nextFireTime)
-        //{
-        //    FireBullet();
-        //    nextFireTime = Time.time + fireRate; // 다음 발사 시간 갱신
-        //}
-
         if (BattleManager.Instance.isStarting) return;
 
         // 1. UI 버튼(isPressed)
         // 2. 키보드 X 또는 Space
         // 3. 게임패드의 남쪽 버튼 (A/X)
         bool isFiring = isPressed ||
-                        Input.GetKey(Key.X) ||
+                        //Input.GetKey(Key.X) ||
                         Input.GetKey(Key.Space) ||
                         Input.GetGamepadButton();
 
@@ -76,6 +67,8 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     public void FireBullet()
     {
         if (BulletPoolManager.Instance == null) return;
+
+        joysticPlayer.animController.PlayAttack();
 
         GameObject bullet = BulletPoolManager.Instance.GetBullet();
 

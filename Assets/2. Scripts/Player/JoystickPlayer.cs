@@ -6,6 +6,8 @@ public class JoystickPlayer : BaseUnit
     //public float speed;
     public VariableJoystick variableJoystick;
     public Rigidbody rb;
+    public AnimController animController;
+    Animator anim;
 
     // 회전 제어 변수 (기본값 true)
     public bool canRotate = true;
@@ -14,6 +16,10 @@ public class JoystickPlayer : BaseUnit
 
     void Start()
     {
+        anim = GetComponent<Animator>();
+
+        animController = new AnimController(anim);
+
         BattleManager.Instance.RegisterPlayer(this);
 
         if (playerData != null)
@@ -27,7 +33,6 @@ public class JoystickPlayer : BaseUnit
 
     public void FixedUpdate()
     {
-        // 3초 대기 중이라면 아래 로직을 모두 건너뜀
         if (BattleManager.Instance.isStarting)
         {
             // 혹시 모를 밀림 방지
@@ -43,7 +48,7 @@ public class JoystickPlayer : BaseUnit
         Vector3 direction = (Vector3.forward * v) + (Vector3.right * h);
 
         // 대각선 이동 속도 보정 (길이가 1을 넘지 않도록 normalized)
-        if (direction.magnitude > 1f)
+        if (direction.sqrMagnitude > 1f)
         {
             direction.Normalize();
         }
@@ -53,7 +58,6 @@ public class JoystickPlayer : BaseUnit
         //rb.AddForce(direction * speed * Time.fixedDeltaTime, ForceMode.Impulse);
         rb.linearVelocity = direction * playerData.MOVESPEED;
 
-        //rb.rotation = Quaternion.LookRotation(direction * speed * Time.deltaTime);
         // 입력값의 크기가 아주 작을 때(손을 뗐을 때)는 회전하지 않도록 함
         if (canRotate && direction.sqrMagnitude > 0.01f)
         {
@@ -63,6 +67,8 @@ public class JoystickPlayer : BaseUnit
             // 즉시 회전시키거나, Lerp를 사용하여 부드럽게 회전시킬 수 있음
             rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 5f);
         }
+
+        animController.PlayMove(direction.sqrMagnitude);
     }
 
     protected override void Die()

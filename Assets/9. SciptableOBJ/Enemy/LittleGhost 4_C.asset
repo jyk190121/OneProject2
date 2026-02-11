@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0797b85399eb5c4da4dd69760f2233a, type: 3}
+  m_Name: LittleGhost 4_C
+  m_EditorClassIdentifier: 
+  type: C
+  HP: 60
+  ATT: 4
+  MOVESPEED: 2.5
+  ATTSPEED: 0.6
+  SCORE: 40
+  GUN: {fileID: 160796, guid: b36032088bb66f942bc1aa2c2e74ab69, type: 3}
+  ITEMS: []
+  PREFAB: {fileID: 6180285084413637326, guid: 599519992bda7c14399432c05b55666c, type: 3}
+  DIEEFFECT: {fileID: 7914662257891743077, guid: 3c0de2607c58f0d4ebfd659a38b10aa7, type: 3}

@@ -232,9 +232,20 @@ public class EnemyFSM : BaseUnit
         {
             // GetBullet에 적마다 다른 총알 프리팹을 전달
             GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet(enemyData.GUN); // GUN 필드 사용
-
             bulletObj.transform.position = bulletPos.position;
-            bulletObj.transform.rotation = transform.rotation;
+            Vector3 fireDir = transform.forward;
+            //Vector3 fireDirLow = fireDir + Vector3.down;
+
+            if (enemyData.type == "B")
+            {
+                //bulletObj.transform.rotation = transform.rotation * Quaternion.Euler(90f, 0, 0f);
+                bulletObj.transform.position = bulletPos.position + (Vector3.down * 0.5f);
+                bulletObj.transform.rotation = Quaternion.LookRotation(fireDir) * Quaternion.Euler(90f, 0, 0f);
+            }
+            else
+            {
+                bulletObj.transform.rotation = Quaternion.LookRotation(fireDir);
+            }
 
             EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
             if (enemyBulletScript != null)
@@ -244,7 +255,15 @@ public class EnemyFSM : BaseUnit
                 Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
-                    rb.linearVelocity = transform.forward * 5f; // 속도는 SO에 맞춰 조절 가능
+                    //Vector3 targetPos = targetPlayer.position + Vector3.up * 1.0f;
+                    //rb.linearVelocity = transform.forward * 5f; // 속도는 SO에 맞춰 조절 가능
+
+                    // 물리 속도 초기화 필수 (풀링된 오브젝트이므로)
+                    rb.linearVelocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+
+                    // 설정한 정면 방향으로 발사
+                    rb.linearVelocity = fireDir * 10f;
                 }
             }
         }

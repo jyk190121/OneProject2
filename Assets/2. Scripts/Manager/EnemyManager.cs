@@ -114,31 +114,28 @@ public class EnemyManager : MonoBehaviour
     {
         yield return new WaitForSeconds(3f);
 
-        // 게임 오버가 아닐 때만 무한 반복
         while (true)
         {
             print($"현재 몇마리 :{enemyList.Count}");
-            // 게임 오버 시 정리 로직
+            // 게임 오버 시 정리 로직 (루프 나오자)
             if (BattleManager.Instance.isGameOver || createEnemyStop)
             {
                 CleanupEnemies();
                 yield break;
             }
 
-            // 1. 리스트 정리: 파괴된(null인) 객체를 리스트에서 제거
             // 죽어서 Destroy된 적들을 목록에서 빼주어야 정확한 카운트가 가능합니다.
             enemyList.RemoveAll(item => item == null);
 
-            // 2. 현재 살아있는 적이 100마리 미만인지 체크
             if (enemyList.Count < maxEnemyCount)
             {
                 SpawnRandomEnemy();
-                // 생성 후 간격 대기
+                // 생성 간격 대기
                 yield return new WaitForSeconds(spawnDelay);
             }
             else
             {
-                // 100마리가 다 찼다면 잠시 대기 후 다시 체크 (CPU 부하 감소)
+                //다 찼다면 잠시 대기 후 다시 체크 (CPU 부하 감소)
                 yield return new WaitForSeconds(1f);
             }
         }

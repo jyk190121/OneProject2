@@ -6,6 +6,7 @@ public class AnimController
 
     //readonly int hashMove = Animator.StringToHash("IsMove");
     readonly int hashAttack = Animator.StringToHash("Attack");
+    //readonly float hashMove = Animator.StringToHash("Move");
     readonly int hashDam = Animator.StringToHash("Damage");
     readonly int hashDie = Animator.StringToHash("Die");
 
@@ -14,10 +15,10 @@ public class AnimController
         this.anim = anim;
     }
 
-    //public void PlayMove(bool isMoving)
-    //{
-    //    anim.SetBool(hashMove);
-    //}
+    public void PlayMove(float dir)
+    {
+        anim.SetFloat("Move" , dir);
+    }
 
     public void PlayAttack()
     {

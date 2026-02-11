@@ -35,6 +35,7 @@ public class BattleManager : MonoBehaviour
 
     private void OnEnable()
     {
+
         isStarting = true;
 
         StartCoroutine(StartDelayRoutine());
@@ -61,7 +62,7 @@ public class BattleManager : MonoBehaviour
         block[0] = box_A;
         block[1] = box_B;
         block[2] = wallB;
-
+        Application.targetFrameRate = 60;
     }
 
     void Update()

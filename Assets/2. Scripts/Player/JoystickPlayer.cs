@@ -3,14 +3,13 @@ using UnityEngine;
 using Unity.Cinemachine;
 using UnityEngine.UI;
 
-public class JoystickPlayer : NetworkBehaviour
+public class JoystickPlayer : BaseUnit
 {
     //public float speed;
     public VariableJoystick variableJoystick;
     public Rigidbody rb;
     public AnimController animController;
     Animator anim;
-    public Image HP_BAR;
     public Transform networkSpawnPoint; // 캐릭터의 총구 위치
 
     // 회전 제어 변수 (기본값 true)
@@ -91,8 +90,7 @@ public class JoystickPlayer : NetworkBehaviour
     public void FixedUpdate()
     {
         if (!IsOwner) return;
-        //// 내 캐릭터가 아닐 경우 조이스틱/키보드 입력을 무시함
-        //if (!isLocalPlayer) return;
+        Vector3 moveDir = new Vector3(variableJoystick.Horizontal, 0, variableJoystick.Vertical);
 
         if (BattleManager.Instance.isStarting)
         {
@@ -134,6 +132,17 @@ public class JoystickPlayer : NetworkBehaviour
         //}
 
         //animController.PlayMove(direction.sqrMagnitude);
+
+        // 회전 처리
+        Vector3 lookDir = Vector3.zero;
+        if (moveDir.sqrMagnitude > 0.01f) lookDir = moveDir;
+
+        if (lookDir != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(lookDir);
+            // 클라이언트(Owner)가 회전시키면 NetworkTransform이 이를 가로채서 서버로 보냅니다.
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f));
+        }
     }
 
     private void Move()
@@ -150,20 +159,24 @@ public class JoystickPlayer : NetworkBehaviour
         animController.PlayMove(direction.sqrMagnitude);
     }
 
+    protected override void Die()
+    {
+        base.Die(); // 공통 로직(이펙트 생성 등) 실행
 
-    //protected override void Die()
-    //{
-    //    base.Die(); // 공통 로직(이펙트 생성 등) 실행
+        // 플레이어 전용: 매니저에게 게임 오버 알림
+        if (BattleManager.Instance != null)
+        {
+            BattleManager.Instance.GameOver();
+        }
+      
+    }
+/*    public void Shoot()
+    {
+        if (IsOwner) return;
 
-    //    // 플레이어 전용: 매니저에게 게임 오버 알림
-    //    if (BattleManager.Instance != null)
-    //    {
-    //        BattleManager.Instance.GameOver();
-    //    }
-
-    //    // 애니메이션 실행 후 삭제 등 추가 로직
-    //    Destroy(gameObject);
-    //}
+        // 내 총구 위치와 방향을 서버로 보냄
+        RequestFireServerRpc(networkSpawnPoint.position, networkSpawnPoint.rotation);
+    }*/
 
     private void HandleRotation(Vector3 moveDir)
     {
@@ -215,20 +228,50 @@ public class JoystickPlayer : NetworkBehaviour
         FireBulletClientRpc(pos, rot, damage);
     }
 
+
+    [ServerRpc]
+    public void RequestFireServerRpc(Vector3 pos, Quaternion rot)
+    {
+        // [2] 서버가 모든 클라이언트에게 발사하라고 명령 (서버 -> 모든 클라이언트)
+        FireBulletClientRpc(pos, rot, playerData.ATT);
+    }
+
+
     [ClientRpc]
     private void FireBulletClientRpc(Vector3 pos, Quaternion rot, float damage)
     {
         // 실제 총알 생성 로직 (BulletPoolManager가 각자 클라이언트에 있다고 가정)
         if (IsOwner) return; // 본인은 이미 로컬에서 쐈으므로 제외 (선택 사항)
 
-        // 여기서 상대방 화면에 보일 총알을 생성합니다.
-        ExecuteFire(pos, rot, damage);
+        //// 여기서 상대방 화면에 보일 총알을 생성합니다.
+        // ExecuteFire(pos, rot, damage);
+        ExecuteLocalFire(pos, rot, damage);
     }
 
-    public void ExecuteFire(Vector3 pos, Quaternion rot, float damage)
+    //public void ExecuteFire(Vector3 pos, Quaternion rot, float damage)
+    //{
+    //    animController.PlayAttack();
+    //    // ... 실제 BulletPool에서 꺼내서 세팅하는 로직 ...
+    //}
+
+    void ExecuteLocalFire(Vector3 pos, Quaternion rot, float damage)
     {
-        animController.PlayAttack();
-        // ... 실제 BulletPool에서 꺼내서 세팅하는 로직 ...
-    }
+        GameObject bullet = BulletPoolManager.Instance.GetBullet();
+        bullet.transform.position = pos;
 
+        // 총알 방향 보정 (기존 로직 유지)
+        Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
+        bullet.transform.rotation = rot * bulletFix;
+
+        Bullet bulletScript = bullet.GetComponent<Bullet>();
+        bulletScript.SetDamage(damage);
+
+        Rigidbody rb = bullet.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            // forward 방향으로 물리적인 힘 가하기
+            rb.linearVelocity = rot * Vector3.forward * (playerData.ATTSPEED > 0 ? playerData.ATTSPEED : 10f);
+        }
+    }
 }

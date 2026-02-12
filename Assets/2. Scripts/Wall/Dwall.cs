@@ -26,14 +26,17 @@ public abstract class Dwall : MonoBehaviour
 
     protected virtual void DestroyObject()
     {
-        if (destroyEffect != null)
+        if (NetworkManager.Singleton.IsServer)
         {
-            // 이전에 만든 이펙트 풀링이나 Instantiate 사용
-            GameObject effect = Instantiate(destroyEffect, transform.position, transform.rotation);
-            Destroy(effect, 1.5f);
-        }
+            if (destroyEffect != null)
+            {
+                // 이전에 만든 이펙트 풀링이나 Instantiate 사용
+                GameObject effect = Instantiate(destroyEffect, transform.position, transform.rotation);
+                Destroy(effect, 1.5f);
+            }
 
-        //Destroy(gameObject);
-        GetComponent<NetworkObject>().Despawn();
+            //Destroy(gameObject);
+            GetComponent<NetworkObject>().Despawn();
+        }
     }
 }

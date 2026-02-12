@@ -270,15 +270,36 @@ public class BattleManager : MonoBehaviour
 
     public void GameOver()
     {
+        // 이미 게임 오버라면 중복 실행 방지
         if (isGameOver) return;
 
+        // 1. 현재 살아있는 플레이어 수 체크
+        int alivePlayers = 0;
+        foreach (var p in joystickPlayers)
+        {
+            // activeSelf뿐만 아니라 체력이나 별도의 isDead 플래그가 있다면 함께 체크하는 것이 좋습니다.
+            if (p != null && p.gameObject.activeSelf)
+            {
+                alivePlayers++;
+            }
+        }
+
+        // 2. 생존자가 남아있다면 게임 오버를 시키지 않고 리턴
+        if (alivePlayers > 0)
+        {
+            Debug.Log($"아직 {alivePlayers}명의 플레이어가 살아있습니다.");
+            return;
+        }
+
+        // 3. 모든 플레이어가 죽었을 때만 실행되는 로직
         isGameOver = true;
+        Debug.Log("모든 플레이어 사망. 게임 오버!");
 
         // 에너미 매니저에게 정지 신호 전달
         EnemyManager em = FindFirstObjectByType<EnemyManager>();
         if (em != null) em.createEnemyStop = true;
 
-        // 필요하다면 여기서 결과창 UI 띄우기
+        // 필요하다면 여기서 결과창 UI를 띄우는 RPC 호출
     }
 
 

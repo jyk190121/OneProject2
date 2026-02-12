@@ -71,20 +71,25 @@ public class EnemyFSM : BaseUnit
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         //if(currentHP <= 0 )
         //{
         //    Die();
         //}
+        if (!IsServer) return;
 
-        if(isDead || targetPlayer == null) return;
+        targetPlayer = GetNearestPlayer();
+
+        if (isDead || targetPlayer == null) return;
 
         UpdateState();
     }
 
     void UpdateState()
     {
+        if (!IsServer) return;
+
         //float distanceSqr = (targetPlayer.position - transform.position).sqrMagnitude;
         Vector3 direction = (targetPlayer.position - transform.position);
         direction.y = 0; // 높이 차이로 인해 땅을 보거나 하늘을 보지 않도록 고정
@@ -281,5 +286,26 @@ public class EnemyFSM : BaseUnit
 
         // 에너미 전용: 점수 획득이나 특정 아이템 드랍 로직 추가 가능
         ScoreManager.Instance.ScoreUpdateUI(enemyData.SCORE);
+    }
+
+    Transform GetNearestPlayer()
+    {
+        // BattleManager에 등록된 플레이어 리스트 활용
+        var players = BattleManager.Instance.joystickPlayers;
+        Transform nearest = null;
+        float minDistance = Mathf.Infinity;
+
+        foreach (var p in players)
+        {
+            if (p == null) continue;
+
+            float distance = Vector3.Distance(transform.position, p.transform.position);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                nearest = p.transform;
+            }
+        }
+        return nearest;
     }
 }

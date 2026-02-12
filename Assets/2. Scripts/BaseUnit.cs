@@ -50,10 +50,6 @@ public class BaseUnit : NetworkBehaviour
             // 이펙트도 일정 시간 뒤 삭제 (또는 이펙트 자체에 AutoDisable이 있다면 생략)
             Destroy(effect, 1.5f);
         }
-
-        //if (!IsSpawned && !IsServer) return;
-        //Destroy(gameObject); // 즉시 삭제 혹은 지연 삭제
-        //GetComponent<NetworkObject>().Despawn(true);
     }
 
     public void Heal(float heal)

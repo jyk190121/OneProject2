@@ -1,37 +1,105 @@
-﻿using UnityEngine;
+﻿using Unity.Netcode;
+using UnityEngine;
+using Unity.Cinemachine;
+using UnityEngine.UI;
 
-public class JoystickPlayer : BaseUnit
+public class JoystickPlayer : NetworkBehaviour
 {
     //public float speed;
     public VariableJoystick variableJoystick;
     public Rigidbody rb;
     public AnimController animController;
     Animator anim;
+    public Image HP_BAR;
+    public Transform networkSpawnPoint; // 캐릭터의 총구 위치
 
     // 회전 제어 변수 (기본값 true)
     public bool canRotate = true;
 
     public Player playerData; // P1_Data, P2_Data 등을 각각 할당
 
-    void Start()
+    //public bool isLocalPlayer = true; // 네트워크 매니저가 스폰할 때 설정해줌
+
+    public override void OnNetworkSpawn()
     {
-        anim = GetComponent<Animator>();
-
-        animController = new AnimController(anim);
-
-        BattleManager.Instance.RegisterPlayer(this);
-
-        if (playerData != null)
+        if (BattleManager.Instance != null)
         {
-            InitStats(playerData.HP);
+            BattleManager.Instance.RegisterPlayer(this);
+            anim = GetComponent<Animator>();
+            animController = new AnimController(anim);
+        }
 
-            SetDeathEffect(playerData.DIEEFFECT);
-            // playerData.SPEED 등을 사용하여 이동 속도 설정
+        // 2. 로컬 플레이어 전용 설정 (내 캐릭터일 때만 실행)
+        if (IsOwner)
+        {
+            SetupLocalPlayer();
+        }
+        //else
+        //{
+        //    // 다른 유저 캐릭터라면 물리 연산 방해받지 않도록 kinematic 설정 고려
+        //    if (rb != null) rb.isKinematic = false;
+        //}
+    }
+
+    private void SetupLocalPlayer()
+    {
+        // [시네머신 설정] 씬에 있는 CinemachineCamera를 찾아 나를 추적하게 함
+        var vcam = GameObject.FindAnyObjectByType<CinemachineCamera>();
+        if (vcam != null)
+        {
+            vcam.Target.TrackingTarget = transform;
+            vcam.Target.LookAtTarget = transform;
+        }
+
+        //// 조이스틱 및 UI 연결 (BattleManager를 통해 전달받은 것 사용)
+        //if (variableJoystick == null) variableJoystick = BattleManager.Instance.joystick;
+
+        // [수정] 직접 매니저의 필드에 접근하여 할당 (Owner가 스스로 가져가는 방식이 더 확실합니다)
+        if (BattleManager.Instance != null)
+        {
+            //this.variableJoystick = BattleManager.Instance.joystick;
+            //this.HP_BAR = BattleManager.Instance.playerHP_bar;
+
+            //// 스포너 설정도 여기서 수행
+            //if (BattleManager.Instance.bulletSpawner != null)
+            //{
+            //    BattleManager.Instance.bulletSpawner.SetTargetPlayer(this);
+            //}
+
+            if (variableJoystick == null)
+            {
+                variableJoystick = BattleManager.Instance.joystick;
+            }
+            if (HP_BAR == null)
+            {
+                HP_BAR = BattleManager.Instance.playerHP_bar;
+            }
         }
     }
 
+    //void Start()
+    //{
+    //    //anim = GetComponent<Animator>();
+
+    //    //animController = new AnimController(anim);
+
+    //    //BattleManager.Instance.RegisterPlayer(this);
+
+    //    //if (playerData != null)
+    //    //{
+    //    //    InitStats(playerData.HP);
+
+    //    //    SetDeathEffect(playerData.DIEEFFECT);
+    //    //    // playerData.SPEED 등을 사용하여 이동 속도 설정
+    //    //}
+    //}
+
     public void FixedUpdate()
     {
+        if (!IsOwner) return;
+        //// 내 캐릭터가 아닐 경우 조이스틱/키보드 입력을 무시함
+        //if (!isLocalPlayer) return;
+
         if (BattleManager.Instance.isStarting)
         {
             // 혹시 모를 밀림 방지
@@ -39,52 +107,69 @@ public class JoystickPlayer : BaseUnit
             return;
         }
 
-        // 조이스틱 값 + 키보드(Input.cs) 값을 더합니다.
+        Move();
+
+        //// 조이스틱 값 + 키보드(Input.cs) 값을 더합니다.
+        //float h = variableJoystick.Horizontal + Input.GetAxis("Horizontal");
+        //float v = variableJoystick.Vertical + Input.GetAxis("Vertical");
+
+        //// 방향 벡터 생성 (3D 환경이므로 x와 z축 사용)
+        //Vector3 direction = (Vector3.forward * v) + (Vector3.right * h);
+
+        //// 대각선 이동 속도 보정 (길이가 1을 넘지 않도록 normalized)
+        //if (direction.sqrMagnitude > 1f)
+        //{
+        //    direction.Normalize();
+        //}
+
+        ////Vector3 direction = Vector3.forward * variableJoystick.Vertical + Vector3.right * variableJoystick.Horizontal;
+
+        ////rb.AddForce(direction * speed * Time.fixedDeltaTime, ForceMode.Impulse);
+        //rb.linearVelocity = direction * playerData.MOVESPEED;
+
+        //HandleRotation(direction);
+
+        //// 입력값의 크기가 아주 작을 때(손을 뗐을 때)는 회전하지 않도록 함
+        //if (canRotate && direction.sqrMagnitude > 0.01f)
+        //{
+        //    // 현재 방향을 바라보는 회전값 생성
+        //    Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+        //    // 즉시 회전시키거나, Lerp를 사용하여 부드럽게 회전시킬 수 있음
+        //    rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 5f);
+        //}
+
+        //animController.PlayMove(direction.sqrMagnitude);
+    }
+
+    private void Move()
+    {
         float h = variableJoystick.Horizontal + Input.GetAxis("Horizontal");
         float v = variableJoystick.Vertical + Input.GetAxis("Vertical");
-
-        // 방향 벡터 생성 (3D 환경이므로 x와 z축 사용)
         Vector3 direction = (Vector3.forward * v) + (Vector3.right * h);
 
-        // 대각선 이동 속도 보정 (길이가 1을 넘지 않도록 normalized)
-        if (direction.sqrMagnitude > 1f)
-        {
-            direction.Normalize();
-        }
+        if (direction.sqrMagnitude > 1f) direction.Normalize();
 
-        //Vector3 direction = Vector3.forward * variableJoystick.Vertical + Vector3.right * variableJoystick.Horizontal;
-
-        //rb.AddForce(direction * speed * Time.fixedDeltaTime, ForceMode.Impulse);
         rb.linearVelocity = direction * playerData.MOVESPEED;
 
         HandleRotation(direction);
-
-        // 입력값의 크기가 아주 작을 때(손을 뗐을 때)는 회전하지 않도록 함
-        if (canRotate && direction.sqrMagnitude > 0.01f)
-        {
-            // 현재 방향을 바라보는 회전값 생성
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-
-            // 즉시 회전시키거나, Lerp를 사용하여 부드럽게 회전시킬 수 있음
-            rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 5f);
-        }
-
         animController.PlayMove(direction.sqrMagnitude);
     }
 
-    protected override void Die()
-    {
-        base.Die(); // 공통 로직(이펙트 생성 등) 실행
 
-        // 플레이어 전용: 매니저에게 게임 오버 알림
-        if (BattleManager.Instance != null)
-        {
-            BattleManager.Instance.GameOver();
-        }
+    //protected override void Die()
+    //{
+    //    base.Die(); // 공통 로직(이펙트 생성 등) 실행
 
-        // 애니메이션 실행 후 삭제 등 추가 로직
-        Destroy(gameObject);
-    }
+    //    // 플레이어 전용: 매니저에게 게임 오버 알림
+    //    if (BattleManager.Instance != null)
+    //    {
+    //        BattleManager.Instance.GameOver();
+    //    }
+
+    //    // 애니메이션 실행 후 삭제 등 추가 로직
+    //    Destroy(gameObject);
+    //}
 
     private void HandleRotation(Vector3 moveDir)
     {
@@ -120,4 +205,30 @@ public class JoystickPlayer : BaseUnit
             rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f);
         }
     }
+
+    // [중요] 서버에 발사를 요청하는 RPC
+    [ServerRpc]
+    public void RequestFireServerRpc(Vector3 pos, Quaternion rot, float damage)
+    {
+        // 서버가 모든 클라이언트에게 총알 생성을 알리는 로직 (또는 NetworkObject 풀링 사용)
+        // 여기서는 간단하게 모든 클라이언트에서 실행되도록 ClientRpc를 호출할 수 있습니다.
+        FireBulletClientRpc(pos, rot, damage);
+    }
+
+    [ClientRpc]
+    private void FireBulletClientRpc(Vector3 pos, Quaternion rot, float damage)
+    {
+        // 실제 총알 생성 로직 (BulletPoolManager가 각자 클라이언트에 있다고 가정)
+        if (IsOwner) return; // 본인은 이미 로컬에서 쐈으므로 제외 (선택 사항)
+
+        // 여기서 상대방 화면에 보일 총알을 생성합니다.
+        ExecuteFire(pos, rot, damage);
+    }
+
+    public void ExecuteFire(Vector3 pos, Quaternion rot, float damage)
+    {
+        animController.PlayAttack();
+        // ... 실제 BulletPool에서 꺼내서 세팅하는 로직 ...
+    }
+
 }

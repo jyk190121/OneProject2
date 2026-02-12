@@ -15,19 +15,35 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     private bool isPressed = false;                     // 버튼이 눌려있는지 확인
     private float nextFireTime = 0f;                    // 다음 발사 가능 시간
 
-    void Awake()
-    {
-        //player = BattleManager.Instance.joystickPlayers[0].GetComponent<GameObject>();
+    //void Awake()
+    //{
+    //    //player = BattleManager.Instance.joystickPlayers[0].GetComponent<GameObject>();
 
-        if (player != null)
-        {
-            joysticPlayer = player.GetComponent<JoystickPlayer>();
-        }
+    //    if (player != null)
+    //    {
+    //        joysticPlayer = player.GetComponent<JoystickPlayer>();
+    //    }
+    //}
+
+    // BattleManager에서 호출해줄 함수
+    public void SetTargetPlayer(JoystickPlayer target)
+    {
+        if (target == null) return;
+
+        joysticPlayer = target;
+        player = target.gameObject;
+
+        if (spawnPoint == null) spawnPoint = target.networkSpawnPoint;
+        Debug.Log($"{target.name} 플레이어가 스포너에 할당되었습니다.");
     }
+
 
     void Update()
     {
-        if (BattleManager.Instance.isStarting) return;
+        // 플레이어가 할당되지 않았거나 게임 시작 전이면 리턴
+        if (joysticPlayer == null || BattleManager.Instance.isStarting) return;
+
+        //if (BattleManager.Instance.isStarting) return;
 
         // 1. UI 버튼(isPressed)
         // 2. 키보드 X 또는 Space
@@ -67,34 +83,14 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     public void FireBullet()
     {
         if (BulletPoolManager.Instance == null) return;
+        if (joysticPlayer == null || !joysticPlayer.IsOwner) return;
 
         joysticPlayer.animController.PlayAttack();
 
-        GameObject bullet = BulletPoolManager.Instance.GetBullet();
+        ExecuteLocalFire();
 
-        Bullet bulletAtt = bullet.GetComponent<Bullet>();
-        bulletAtt.SetDamage(joysticPlayer.playerData.ATT);
-
-        bullet.transform.position = spawnPoint.position;
-        Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
-        bullet.transform.rotation = spawnPoint.rotation * bulletFix;
-
-        Rigidbody rb = bullet.GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            // 중요: 풀링된 총알은 이전의 속도가 남아있을 수 있으므로 초기화 후 부여
-            rb.linearVelocity = Vector3.zero;
-
-            if(joysticPlayer.playerData.ATTSPEED !=0)
-            { 
-                rb.linearVelocity = spawnPoint.forward * joysticPlayer.playerData.ATTSPEED;
-            }
-            else
-            {
-                rb.linearVelocity = spawnPoint.forward * bulletSpeed;
-            }
-        }
-
+        joysticPlayer.RequestFireServerRpc(spawnPoint.position, spawnPoint.rotation, joysticPlayer.playerData.ATT);
+        
         //if (bulletPrefab == null)
         //{
         //    Debug.LogError("총알 프리팹이 할당되지 않았습니다!");
@@ -122,5 +118,33 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
         //    // Rigidbody가 없다면 총알 자체 스크립트에서 이동 로직이 있어야 합니다.
         //    Debug.LogWarning("총알에 Rigidbody가 없어 물리 이동이 적용되지 않습니다.");
         //}
+    }
+    private void ExecuteLocalFire()
+    {
+        GameObject bullet = BulletPoolManager.Instance.GetBullet();
+
+        Bullet bulletAtt = bullet.GetComponent<Bullet>();
+        bulletAtt.SetDamage(joysticPlayer.playerData.ATT);
+
+        bullet.transform.position = spawnPoint.position;
+        Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
+        bullet.transform.rotation = spawnPoint.rotation * bulletFix;
+
+        Rigidbody rb = bullet.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            // 중요: 풀링된 총알은 이전의 속도가 남아있을 수 있으므로 초기화 후 부여
+            rb.linearVelocity = Vector3.zero;
+
+            if (joysticPlayer.playerData.ATTSPEED != 0)
+            {
+                rb.linearVelocity = spawnPoint.forward * joysticPlayer.playerData.ATTSPEED;
+            }
+            else
+            {
+                rb.linearVelocity = spawnPoint.forward * bulletSpeed;
+            }
+        }
+
     }
 }

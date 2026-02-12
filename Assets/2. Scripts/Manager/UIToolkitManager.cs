@@ -8,6 +8,15 @@ public class UIToolkitManager : MonoBehaviour
     VisualElement panel;
 
     Button startBtn;
+    Button menuBtn;
+    Button rankingBtn;
+    Button soundBtn;
+    Button settingBtn;
+    Button exitBtn;
+    MenuPopup menu;
+    RankingPopup rank;
+    SettingPopup setting;
+    ExitPopup exit;
 
     [Header("Fade In 시간")]
     float fadeDuration = 1.0f;
@@ -15,12 +24,34 @@ public class UIToolkitManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        menu = GetComponent<MenuPopup>();
+        rank = GetComponent<RankingPopup>();
+        setting = GetComponent<SettingPopup>();
+        exit = GetComponent<ExitPopup>();
+
         document = GetComponent<UIDocument>();
         panel = document.rootVisualElement;
 
+        menuBtn = panel.Q<Button>("MenuBtn");
         startBtn = panel.Q<Button>("PlayBtn");
+        rankingBtn = panel.Q<Button>("RankingBtn");
+        soundBtn = panel.Q<Button>("SoundBtn");
+        settingBtn = panel.Q<Button>("SettingBtn");
+        exitBtn = panel.Q<Button>("ExitBtn");
 
+        //UI캔버스 창 띄우기
+        //멀티 -> 코드 입력 창, 닫기
+        menuBtn.clickable.clicked += MultiPlay;
+        //싱글 플레이
         startBtn.clickable.clicked += GameStart;
+        //랭킹보드
+        rankingBtn.clickable.clicked += RankingBoard;
+        //사운드 모두 끄기 / 켜기
+        soundBtn.clickable.clicked += SoundMuteSetting;
+        //사운드 조절 창 / 내 캐릭터 정보 (선택)
+        settingBtn.clickable.clicked += SettingInfo;
+        //게임 종료 여부 창
+        exitBtn.clickable.clicked += GameExit;
 
         //스타트 씬 Fadein 효과
         StartCoroutine(FadeInUi());
@@ -43,8 +74,40 @@ public class UIToolkitManager : MonoBehaviour
         panel.style.opacity = 1;
     }
 
+    void MultiPlay()
+    {
+        menu.ShowConfirm("방 이름을 입력해주세요", MoveLobby);
+    }
+
+    public void MoveLobby()
+    {
+        //print($"로비 창에 입장하셨습니다 {menu.roomName.text}");
+        //LobbyManager쪽에 menu.roomName만 넘겨주자
+        LobbyManager.Instance.CreateRoom(menu.roomName.text);
+    }
+
     void GameStart()
     {
         GameSceneManager.Instance.LoadScene("Map");
+    }
+
+    void RankingBoard()
+    {
+
+    }
+
+    void SoundMuteSetting()
+    {
+
+    }
+
+    void SettingInfo()
+    {
+
+    }
+
+    void GameExit()
+    {
+        Application.Quit();
     }
 }

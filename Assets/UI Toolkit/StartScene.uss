@@ -12,10 +12,10 @@
     -unity-background-image-tint-color: rgba(255, 255, 255, 0.78);
 }
 
-.ScoreBtn {
+.RankingBtn {
 }
 
-.ScoreBtn:active {
+.RankingBtn:active {
     -unity-background-image-tint-color: rgba(255, 255, 255, 0.78);
 }
 
@@ -33,9 +33,9 @@
     -unity-background-image-tint-color: rgba(255, 255, 255, 0.78);
 }
 
-.CloseBtn {
+.ExitBtn {
 }
 
-.CloseBtn:active {
+.ExitBtn:active {
     -unity-background-image-tint-color: rgba(255, 255, 255, 0.78);
 }

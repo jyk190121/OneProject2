@@ -32,6 +32,9 @@ public class BattleManager : MonoBehaviour
 
     public bool isGameOver = false;
 
+    public BulletSpawner bulletSpawner; // 인스펙터에서 할당하거나 Find로 찾기
+    private int lastAssignedIndex = -1;
+
 
     private void OnEnable()
     {
@@ -49,7 +52,8 @@ public class BattleManager : MonoBehaviour
 
     void Awake()
     {
-        if(Instance == null)
+
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(Instance);
@@ -59,6 +63,11 @@ public class BattleManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+        if (bulletSpawner == null)
+        {
+            bulletSpawner = FindFirstObjectByType<BulletSpawner>();
+        }
+
         block[0] = box_A;
         block[1] = box_B;
         block[2] = wallB;
@@ -79,18 +88,55 @@ public class BattleManager : MonoBehaviour
         if (!joystickPlayers.Contains(player))
         {
             joystickPlayers.Add(player);
-            
-            if(player.variableJoystick == null)
+
+            // 현재 이 플레이어가 로컬 플레이어라면 UI 연결
+            if (player.IsOwner)
             {
-                player.variableJoystick = joystick;
-            }
-            if(player.HP_BAR == null)
-            {
-                player.HP_BAR = playerHP_bar;
+
+                RefreshUIReferences(); // 씬 이동 후라면 여기서 UI를 새로 잡음
+
+                player.variableJoystick = this.joystick;
+                player.HP_BAR = this.playerHP_bar;
+
+                // BulletSpawner에도 내 캐릭터를 가장 먼저 등록
+                if (bulletSpawner != null) bulletSpawner.SetTargetPlayer(player);
             }
 
+
+            if (joystickPlayers.Count == 1)
+            {
+                AssignNextPlayerToSpawner();
+            }
         }
     }
+
+    // 순차적으로 다음 플레이어를 스포너에게 알려주는 함수
+    public void AssignNextPlayerToSpawner()
+    {
+        if (joystickPlayers.Count == 0) return;
+
+        // 다음 인덱스 계산 (리스트 범위를 벗어나면 0으로 돌아감)
+        lastAssignedIndex = (lastAssignedIndex + 1) % joystickPlayers.Count;
+
+        JoystickPlayer nextPlayer = joystickPlayers[lastAssignedIndex];
+        bulletSpawner.SetTargetPlayer(nextPlayer);
+    }
+
+    // 씬이 바뀌었을 때 Null이 된 참조들을 다시 찾아주는 함수
+    private void RefreshUIReferences()
+    {
+        // 만약 기존 참조가 사라졌다면(Missing) 다시 찾기
+        if (joystick == null) joystick = FindFirstObjectByType<VariableJoystick>();
+        if (bulletSpawner == null) bulletSpawner = FindFirstObjectByType<BulletSpawner>();
+
+        // HP바 같은 경우 캔버스 아래 특정 이름으로 찾는 것이 좋습니다.
+        if (playerHP_bar == null)
+        {
+            GameObject hpObj = GameObject.Find("PlayerHPbar"); // 씬 내 오브젝트 이름
+            if (hpObj != null) playerHP_bar = hpObj.GetComponent<Image>();
+        }
+    }
+
     IEnumerator StartDelayRoutine()
     {
         //yield return new WaitForSecondsRealtime(0.2f); // 최소한의 숨 고르기

@@ -29,16 +29,10 @@ public class JoystickPlayer : NetworkBehaviour
             animController = new AnimController(anim);
         }
 
-        // 2. 로컬 플레이어 전용 설정 (내 캐릭터일 때만 실행)
         if (IsOwner)
         {
             SetupLocalPlayer();
         }
-        //else
-        //{
-        //    // 다른 유저 캐릭터라면 물리 연산 방해받지 않도록 kinematic 설정 고려
-        //    if (rb != null) rb.isKinematic = false;
-        //}
     }
 
     private void SetupLocalPlayer()
@@ -173,14 +167,20 @@ public class JoystickPlayer : NetworkBehaviour
 
     private void HandleRotation(Vector3 moveDir)
     {
-        if (!canRotate) return;
+        if (!IsOwner || !canRotate) return; // 내 캐릭터만 계산
 
         Vector3 lookDir = Vector3.zero;
-
         // [A] 게임패드 오른쪽 스틱 입력 확인
         float rh = Input.GetAxis("LookHorizontal");
         float rv = Input.GetAxis("LookVertical");
         Vector3 stickLookDir = (Vector3.forward * rv) + (Vector3.right * rh);
+
+        if (lookDir != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(lookDir);
+            // rb.rotation 대신 transform.rotation을 사용하면 NetworkTransform이 더 잘 감지합니다.
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.fixedDeltaTime * 10f);
+        }
 
         if (stickLookDir.sqrMagnitude > 0.1f)
         {

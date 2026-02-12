@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using Unity.Netcode;
 /// <summary>
 /// Enemy Spawn 
 /// 위치 설정 Clamp (맵 Size)
@@ -8,7 +9,7 @@ using System.Collections;
 /// Enemy Type 랜덤(A ~ F)
 /// 최대 생성 Enemy 수? 
 /// </summary>
-public class EnemyManager : MonoBehaviour
+public class EnemyManager : NetworkBehaviour
 {
     public List<Enemy> enemies;                     // 모든 적 타입 리스트
     public Transform[] spawnPoints;                 // 적 생성 위치
@@ -20,10 +21,19 @@ public class EnemyManager : MonoBehaviour
     private List<GameObject> enemyList = new List<GameObject>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    //void Start()
+    //{
+    //    if (enemies == null || enemies.Count == 0) return;
+    //    StartCoroutine(SpawnEnemyRoutine());
+    //}
+
+    public override void OnNetworkSpawn()
     {
-        if (enemies == null || enemies.Count == 0) return;
-        StartCoroutine(SpawnEnemyRoutine());
+        // 중요: 서버(Host)만 적을 생성하는 코루틴을 시작합니다.
+        if (IsServer)
+        {
+            StartCoroutine(SpawnEnemyRoutine());
+        }
     }
 
     //IEnumerator SpawnEnemy(List<Enemy> enemies)
@@ -120,7 +130,8 @@ public class EnemyManager : MonoBehaviour
             // 게임 오버 시 정리 로직 (루프 나오자)
             if (BattleManager.Instance.isGameOver || createEnemyStop)
             {
-                CleanupEnemies();
+                //CleanupEnemies();
+                CleanupEnemiesServerRpc(); // 서버에서 삭제 명령
                 yield break;
             }
 
@@ -147,7 +158,33 @@ public class EnemyManager : MonoBehaviour
         Transform spawnPos = GetRandomSpawnPoint();
 
         GameObject enemyObj = Instantiate(enemies[enemyIndex].PREFAB, spawnPos.position, Quaternion.identity);
+        
+        //네트워크 동기화
+        if (enemyObj.TryGetComponent<NetworkObject>(out var netObj))
+        {
+            netObj.Spawn();
+        }
+
         enemyList.Add(enemyObj);
+    }
+
+    // 적 전체 삭제도 서버가 주도해야 합니다.
+    [ServerRpc]
+    private void CleanupEnemiesServerRpc()
+    {
+        if (!IsServer) return;
+
+        foreach (var enemy in enemyList)
+        {
+            if (enemy != null)
+            {
+                // Destroy 대신 NetworkObject의 Despawn 혹은 Destroy를 호출
+                var netObj = enemy.GetComponent<NetworkObject>();
+                if (netObj != null && netObj.IsSpawned) netObj.Despawn();
+                else Destroy(enemy);
+            }
+        }
+        enemyList.Clear();
     }
 
     private Transform GetRandomSpawnPoint()
@@ -159,12 +196,12 @@ public class EnemyManager : MonoBehaviour
         return transform;
     }
 
-    private void CleanupEnemies()
-    {
-        foreach (var enemy in enemyList)
-        {
-            if (enemy != null) Destroy(enemy);
-        }
-        enemyList.Clear();
-    }
+    //private void CleanupEnemies()
+    //{
+    //    foreach (var enemy in enemyList)
+    //    {
+    //        if (enemy != null) Destroy(enemy);
+    //    }
+    //    enemyList.Clear();
+    //}
 }

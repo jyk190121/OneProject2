@@ -85,12 +85,16 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
         if (BulletPoolManager.Instance == null) return;
         if (joysticPlayer == null || !joysticPlayer.IsOwner) return;
 
+        Transform currentSpawnPoint = joysticPlayer.networkSpawnPoint;
+        if (currentSpawnPoint == null) return;
+
         joysticPlayer.animController.PlayAttack();
 
-        ExecuteLocalFire();
+        ExecuteLocalFire(currentSpawnPoint);
 
-        joysticPlayer.RequestFireServerRpc(spawnPoint.position, spawnPoint.rotation, joysticPlayer.playerData.ATT);
-        
+        //joysticPlayer.RequestFireServerRpc(spawnPoint.position, spawnPoint.rotation, joysticPlayer.playerData.ATT);
+        joysticPlayer.RequestFireServerRpc(currentSpawnPoint.position, currentSpawnPoint.rotation, joysticPlayer.playerData.ATT);
+
         //if (bulletPrefab == null)
         //{
         //    Debug.LogError("총알 프리팹이 할당되지 않았습니다!");
@@ -99,7 +103,7 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
         //// 1. 총알 생성 (위치와 회전값을 spawnPoint에 맞춤)
         ////GameObject bullet = Instantiate(bulletPrefab, spawnPoint.position, spawnPoint.rotation);
-        
+
         //Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
 
         //// 최종 회전 = 스폰 지점 회전 상태에서 내부적으로 90도 돌림
@@ -119,31 +123,33 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
         //    Debug.LogWarning("총알에 Rigidbody가 없어 물리 이동이 적용되지 않습니다.");
         //}
     }
-    private void ExecuteLocalFire()
+    private void ExecuteLocalFire(Transform targetSpawn)
     {
         GameObject bullet = BulletPoolManager.Instance.GetBullet();
-
         Bullet bulletAtt = bullet.GetComponent<Bullet>();
         bulletAtt.SetDamage(joysticPlayer.playerData.ATT);
 
-        bullet.transform.position = spawnPoint.position;
+        bullet.transform.position = targetSpawn.position;
         Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
-        bullet.transform.rotation = spawnPoint.rotation * bulletFix;
+        bullet.transform.rotation = targetSpawn.rotation * bulletFix;
 
         Rigidbody rb = bullet.GetComponent<Rigidbody>();
         if (rb != null)
         {
             // 중요: 풀링된 총알은 이전의 속도가 남아있을 수 있으므로 초기화 후 부여
             rb.linearVelocity = Vector3.zero;
+            float speed = joysticPlayer.playerData.ATTSPEED != 0 ? joysticPlayer.playerData.ATTSPEED : bulletSpeed;
+            rb.linearVelocity = targetSpawn.forward * speed;
 
-            if (joysticPlayer.playerData.ATTSPEED != 0)
-            {
-                rb.linearVelocity = spawnPoint.forward * joysticPlayer.playerData.ATTSPEED;
-            }
-            else
-            {
-                rb.linearVelocity = spawnPoint.forward * bulletSpeed;
-            }
+
+            //if (joysticPlayer.playerData.ATTSPEED != 0)
+            //{
+            //    rb.linearVelocity = spawnPoint.forward * joysticPlayer.playerData.ATTSPEED;
+            //}
+            //else
+            //{
+            //    rb.linearVelocity = spawnPoint.forward * bulletSpeed;
+            //}
         }
 
     }

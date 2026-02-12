@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public abstract class Dwall : MonoBehaviour
@@ -32,6 +33,7 @@ public abstract class Dwall : MonoBehaviour
             Destroy(effect, 1.5f);
         }
 
-        Destroy(gameObject);
+        //Destroy(gameObject);
+        GetComponent<NetworkObject>().Despawn();
     }
 }

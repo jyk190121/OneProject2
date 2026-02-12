@@ -1,6 +1,7 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
-public class BaseUnit : MonoBehaviour
+public class BaseUnit : NetworkBehaviour
 {
     public Image HP_BAR;
 
@@ -33,9 +34,12 @@ public class BaseUnit : MonoBehaviour
 
     protected virtual void Die()
     {
+        if (!IsServer) return;
+
         if (isDead) return;
 
         isDead = true;
+        GetComponent<NetworkObject>().Despawn();
         //gameObject.SetActive(false);
         // 사망 이펙트 생성
         if (deathEffectPrefab != null)
@@ -47,7 +51,9 @@ public class BaseUnit : MonoBehaviour
             Destroy(effect, 1.5f);
         }
 
-        //Destroy(gameObject);
+        //if (!IsSpawned && !IsServer) return;
+        //Destroy(gameObject); // 즉시 삭제 혹은 지연 삭제
+        //GetComponent<NetworkObject>().Despawn(true);
     }
 
     public void Heal(float heal)

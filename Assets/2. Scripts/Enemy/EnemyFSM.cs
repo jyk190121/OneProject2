@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 /// <summary>
 /// 이동/공격/음직임
@@ -280,7 +281,5 @@ public class EnemyFSM : BaseUnit
 
         // 에너미 전용: 점수 획득이나 특정 아이템 드랍 로직 추가 가능
         ScoreManager.Instance.ScoreUpdateUI(enemyData.SCORE);
-
-        Destroy(gameObject); // 즉시 삭제 혹은 지연 삭제
     }
 }

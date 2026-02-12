@@ -223,8 +223,8 @@ GameObject:
   - component: {fileID: 3714900052075963340}
   - component: {fileID: 4599661260913086846}
   - component: {fileID: 3154600866040741233}
-  - component: {fileID: 2205280398063749176}
   - component: {fileID: -2269890477900963037}
+  - component: {fileID: 2205280398063749176}
   - component: {fileID: -7198244447995422990}
   - component: {fileID: 3525506792942202362}
   - component: {fileID: -3699449570045091252}
@@ -327,22 +327,6 @@ CapsuleCollider:
   m_Height: 0.73960495
   m_Direction: 1
   m_Center: {x: -0.0075883865, y: 0.33836842, z: 0.00768137}
---- !u!114 &2205280398063749176
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 383674549258538840}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c897d97160f0f5047baa5fb574410b73, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  HP_BAR: {fileID: 1227011371315982572}
-  currentHP: 0
-  enemyData: {fileID: 11400000, guid: fbad7593b8c73b3419bb53ee04612ba0, type: 2}
-  bulletPos: {fileID: 5260604630603025152}
 --- !u!114 &-2269890477900963037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -368,6 +352,23 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &2205280398063749176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 383674549258538840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c897d97160f0f5047baa5fb574410b73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  HP_BAR: {fileID: 1227011371315982572}
+  currentHP: 0
+  enemyData: {fileID: 11400000, guid: fbad7593b8c73b3419bb53ee04612ba0, type: 2}
+  bulletPos: {fileID: 5260604630603025152}
 --- !u!114 &-7198244447995422990
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -398,9 +399,9 @@ MonoBehaviour:
   SyncPositionX: 1
   SyncPositionY: 1
   SyncPositionZ: 1
-  SyncRotAngleX: 0
-  SyncRotAngleY: 0
-  SyncRotAngleZ: 0
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
   SyncScaleX: 0
   SyncScaleY: 0
   SyncScaleZ: 0

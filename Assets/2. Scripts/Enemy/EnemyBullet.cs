@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -103,7 +104,11 @@ public class EnemyBullet : MonoBehaviour
         {
             if (collision.gameObject.TryGetComponent<ABOX>(out var Abox))
             {
-                Abox.TakeDamage(1f);
+                var netObj = collision.gameObject.GetComponent<NetworkObject>();
+                if (netObj != null && netObj.IsSpawned)
+                {
+                    Abox.TakeDamage(1f);
+                }
             }
         }
         // 3-2. 플레이어인 경우

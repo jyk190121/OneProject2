@@ -26,7 +26,8 @@ public abstract class Dwall : MonoBehaviour
 
     protected virtual void DestroyObject()
     {
-        if (NetworkManager.Singleton.IsServer)
+        var netObj = gameObject.GetComponent<NetworkObject>();
+        if (NetworkManager.Singleton.IsServer && netObj.IsSpawned)
         {
             if (destroyEffect != null)
             {

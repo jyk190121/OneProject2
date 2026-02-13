@@ -38,6 +38,7 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     }
 
 
+
     void FixedUpdate()
     {
         if (BattleManager.Instance.isStarting) return;
@@ -91,16 +92,21 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     {
         if (BulletPoolManager.Instance == null) return;
 
-        // 1. 타겟 유효성 검사 (Missing 또는 null 체크)
         //if (joysticPlayer == null || joysticPlayer.gameObject == null) return;
         //if (joysticPlayer == null) return;
 
-        Transform currentSpawnPoint = joysticPlayer.networkSpawnPoint;
-        //if (currentSpawnPoint == null) return;
+        if (joysticPlayer == null || joysticPlayer.networkSpawnPoint == null)
+        {
+            // 타겟이 죽었거나 없으면 새로 갱신 요청
+            BattleManager.Instance.UpdateSpawnerToAlivePlayer();
+            return;
+        }
 
-        ExecuteLocalFire(currentSpawnPoint);
+        Transform currentSpawnPoint = joysticPlayer.networkSpawnPoint;
 
         joysticPlayer.animController.PlayAttack();
+
+        ExecuteLocalFire(currentSpawnPoint);
 
         //joysticPlayer.RequestFireServerRpc(spawnPoint.position, spawnPoint.rotation, joysticPlayer.playerData.ATT);
         joysticPlayer.RequestFireServerRpc(currentSpawnPoint.position, currentSpawnPoint.rotation);
@@ -136,13 +142,14 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
     private void ExecuteLocalFire(Transform targetSpawn)
     {
-        GameObject bullet = BulletPoolManager.Instance.GetBullet();
-        Bullet bulletAtt = bullet.GetComponent<Bullet>();
-        bulletAtt.SetDamage(joysticPlayer.playerData.ATT);
+        //GameObject bullet = BulletPoolManager.Instance.GetBullet();
+        GameObject bullet = BulletPoolManager.Instance.GetBullet(targetSpawn.position, targetSpawn.rotation);
 
-        bullet.transform.position = targetSpawn.position;
-        Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
-        bullet.transform.rotation = targetSpawn.rotation * bulletFix;
+        //Bullet bulletAtt = bullet.GetComponent<Bullet>();
+        //bulletAtt.SetDamage(joysticPlayer.playerData.ATT);
+        //bullet.transform.position = targetSpawn.position;
+        //Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
+        //bullet.transform.rotation = targetSpawn.rotation * bulletFix;
 
         Rigidbody rb = bullet.GetComponent<Rigidbody>();
         if (rb != null)
@@ -160,6 +167,10 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
             //{
             //    rb.linearVelocity = spawnPoint.forward * bulletSpeed;
             //}
+        }
+        if (bullet.TryGetComponent<Bullet>(out var bulletScript))
+        {
+            bulletScript.SetDamage(joysticPlayer.playerData.ATT);
         }
 
     }

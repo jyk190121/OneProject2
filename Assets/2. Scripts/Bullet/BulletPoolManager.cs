@@ -17,7 +17,7 @@ public class BulletPoolManager : MonoBehaviour
 
     private GameObject CreateBullet()
     {
-        GameObject bullet = Instantiate(bulletPrefab, transform);
+        GameObject bullet = Instantiate(bulletPrefab);
         bullet.GetComponent<Bullet>().SetPool(pool); // 총알에게 자신이 돌아갈 풀을 알려줌
         return bullet;
     }
@@ -27,5 +27,17 @@ public class BulletPoolManager : MonoBehaviour
     private void OnDestroyBullet(GameObject bullet) => Destroy(bullet);
 
     // 외부(Spawner)에서 총알을 빌려갈 때 쓰는 함수
-    public GameObject GetBullet() => pool.Get();
+    //public GameObject GetBullet() => pool.Get();
+
+    public GameObject GetBullet(Vector3 position, Quaternion rotation)
+    {
+        GameObject bullet = pool.Get();
+        bullet.transform.position = position;
+
+        // 총알 모델이 세워져 있는 경우(90도 보정)를 위해 보정값 적용
+        Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
+        bullet.transform.rotation = rotation * bulletFix;
+
+        return bullet;
+    }
 }

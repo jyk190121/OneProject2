@@ -173,7 +173,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2519927149
+  GlobalObjectIdHash: 2855789794
   InScenePlacedSourceGlobalObjectIdHash: 2519927149
   DeferredDespawnTick: 0
   Ownership: 1
@@ -199,9 +199,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  HP_BAR: {fileID: 0}
+  currentHP: 0
   variableJoystick: {fileID: 0}
   rb: {fileID: 2621242368655566108}
-  HP_BAR: {fileID: 0}
   networkSpawnPoint: {fileID: 4749586054057003403}
   canRotate: 1
   playerData: {fileID: 11400000, guid: 02f7bd584f15e704690ad53de9a89f01, type: 2}
@@ -643,7 +644,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4749586054057003403}
-  - component: {fileID: 5226810895266732968}
   m_Layer: 10
   m_Name: POS
   m_TagString: Untagged
@@ -666,19 +666,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 834902948512343172}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5226810895266732968
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5632631077145619551}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b557900be8dba0648959d6a154f3832e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bulletPrefab: {fileID: 5030284608985399073, guid: f3e49ab19a3d90645a9293025d4426a5, type: 3}
 --- !u!1 &5869848772417349804
 GameObject:
   m_ObjectHideFlags: 0

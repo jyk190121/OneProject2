@@ -224,13 +224,13 @@ public class JoystickPlayer : BaseUnit
         }
     }
 
-    [Rpc(SendTo.Everyone)]
+    [ServerRpc]
     public void RequestFireServerRpc(Vector3 pos, Quaternion rot)
     {
         FireBulletClientRpc(pos, rot, playerData.ATT);
     }
 
-    [Rpc(SendTo.Everyone)]
+    [ClientRpc]
     private void FireBulletClientRpc(Vector3 pos, Quaternion rot, float damage)
     {
         if (IsOwner) return; // 본인은 이미 로컬에서 쐈으므로 제외 (선택 사항)
@@ -249,22 +249,33 @@ public class JoystickPlayer : BaseUnit
     {
         animController.PlayAttack();
 
-        GameObject bullet = BulletPoolManager.Instance.GetBullet();
-        bullet.transform.position = pos;
-
-        // 총알 방향 보정 (기존 로직 유지)
-        Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
-        bullet.transform.rotation = rot * bulletFix;
+        GameObject bullet = BulletPoolManager.Instance.GetBullet(pos, rot);
 
         Bullet bulletScript = bullet.GetComponent<Bullet>();
-        bulletScript.SetDamage(damage);
-
-        Rigidbody rb = bullet.GetComponent<Rigidbody>();
-        if (rb != null)
+        if (bulletScript != null)
         {
-            rb.linearVelocity = Vector3.zero;
-            // forward 방향으로 물리적인 힘 가하기
-            rb.linearVelocity = rot * Vector3.forward * (playerData.ATTSPEED > 0 ? playerData.ATTSPEED : 10f);
+            bulletScript.SetDamage(damage);
         }
+        //bullet.transform.position = pos;
+
+        // 총알 방향 보정 (기존 로직 유지)
+        //Quaternion bulletFix = Quaternion.Euler(90f, 0, 0f);
+        //bullet.transform.rotation = rot * bulletFix;
+        Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
+        if (bulletRb != null)
+        {
+            bulletRb.linearVelocity = Vector3.zero;
+            // playerData.ATTSPEED가 0일 경우를 대비한 기본값 설정
+            float speed = playerData.ATTSPEED > 0 ? playerData.ATTSPEED : 10f;
+            bulletRb.linearVelocity = rot * Vector3.forward * speed;
+        }
+
+        //Rigidbody rb = bullet.GetComponent<Rigidbody>();
+        //if (rb != null)
+        //{
+        //    rb.linearVelocity = Vector3.zero;
+        //    // forward 방향으로 물리적인 힘 가하기
+        //    rb.linearVelocity = rot * Vector3.forward * (playerData.ATTSPEED > 0 ? playerData.ATTSPEED : 10f);
+        //}
     }
 }

@@ -4,6 +4,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
+//using Unity.Cinemachine;
 
 public class BattleManager : MonoBehaviour
 {
@@ -12,8 +13,8 @@ public class BattleManager : MonoBehaviour
     public bool isStarting;
     public Image countImg;
     public TextMeshProUGUI countTxt;
-    List<Enemy> enemies;
-    Player player;
+    //List<Enemy> enemies;
+    //Player player;
     public VariableJoystick joystick;
     public Image playerHP_bar;
 
@@ -315,6 +316,15 @@ public class BattleManager : MonoBehaviour
             bulletSpawner.SetTargetPlayer(survivor);
             Debug.Log($"[Target Change] 새 타겟: {survivor.name}");
         }
+        // 시네머신 카메라 타겟 변경 
+        var vcam = GameObject.FindAnyObjectByType<Unity.Cinemachine.CinemachineCamera>();
+        if (vcam != null)
+        {
+            vcam.Target.TrackingTarget = survivor.transform;
+            vcam.Target.LookAtTarget = survivor.transform;
+            Debug.Log($"[Camera] 관전 타겟이 {survivor.name}로 변경되었습니다.");
+        }
+
     }
 
     private void CheckBlocksBounds()

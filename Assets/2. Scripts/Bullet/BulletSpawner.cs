@@ -92,13 +92,10 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     {
         if (BulletPoolManager.Instance == null) return;
 
-        //if (joysticPlayer == null || joysticPlayer.gameObject == null) return;
-        //if (joysticPlayer == null) return;
-
         if (joysticPlayer == null || joysticPlayer.networkSpawnPoint == null)
         {
-            // 타겟이 죽었거나 없으면 새로 갱신 요청
-            BattleManager.Instance.UpdateSpawnerToAlivePlayer();
+            //// 타겟이 죽었거나 없으면 새로 갱신 요청
+            //BattleManager.Instance.UpdateSpawnerToAlivePlayer();
             return;
         }
 

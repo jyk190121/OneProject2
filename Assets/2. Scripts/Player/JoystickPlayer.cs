@@ -1,10 +1,10 @@
 ﻿using Unity.Netcode;
 using UnityEngine;
 using Unity.Cinemachine;
-using UnityEngine.UI;
 
 public class JoystickPlayer : BaseUnit
 {
+
     //public float speed;
     public VariableJoystick variableJoystick;
     public Rigidbody rb;
@@ -26,6 +26,10 @@ public class JoystickPlayer : BaseUnit
             BattleManager.Instance.RegisterPlayer(this);
             anim = GetComponent<Animator>();
             animController = new AnimController(anim);
+
+            InitStats(playerData.HP);
+
+            SetDeathEffect(playerData.DIEEFFECT);
         }
 
         if (IsOwner)
@@ -159,24 +163,25 @@ public class JoystickPlayer : BaseUnit
         animController.PlayMove(direction.sqrMagnitude);
     }
 
-    protected override void Die()
-    {
-        base.Die(); // 공통 로직(이펙트 생성 등) 실행
+    //protected override void Die()
+    //{
+    //    base.Die(); // 공통 로직(이펙트 생성 등) 실행
+    //
+    //    // 플레이어 전용: 매니저에게 게임 오버 알림
+    //    if (BattleManager.Instance != null)
+    //    {
+    //        BattleManager.Instance.GameOver();
+    //    }
+    //  
+    //}
 
-        // 플레이어 전용: 매니저에게 게임 오버 알림
-        if (BattleManager.Instance != null)
-        {
-            BattleManager.Instance.GameOver();
-        }
-      
-    }
-/*    public void Shoot()
-    {
-        if (IsOwner) return;
-
-        // 내 총구 위치와 방향을 서버로 보냄
-        RequestFireServerRpc(networkSpawnPoint.position, networkSpawnPoint.rotation);
-    }*/
+    //public void Shoot()
+    // {
+    //     if (IsOwner) return;
+    //
+    //     // 내 총구 위치와 방향을 서버로 보냄
+    //     RequestFireServerRpc(networkSpawnPoint.position, networkSpawnPoint.rotation);
+    // }
 
     private void HandleRotation(Vector3 moveDir)
     {
@@ -219,32 +224,18 @@ public class JoystickPlayer : BaseUnit
         }
     }
 
-    // [중요] 서버에 발사를 요청하는 RPC
-    [ServerRpc]
-    public void RequestFireServerRpc(Vector3 pos, Quaternion rot, float damage)
-    {
-        // 서버가 모든 클라이언트에게 총알 생성을 알리는 로직 (또는 NetworkObject 풀링 사용)
-        // 여기서는 간단하게 모든 클라이언트에서 실행되도록 ClientRpc를 호출할 수 있습니다.
-        FireBulletClientRpc(pos, rot, damage);
-    }
-
-
-    [ServerRpc]
+    [Rpc(SendTo.Everyone)]
     public void RequestFireServerRpc(Vector3 pos, Quaternion rot)
     {
-        // [2] 서버가 모든 클라이언트에게 발사하라고 명령 (서버 -> 모든 클라이언트)
         FireBulletClientRpc(pos, rot, playerData.ATT);
     }
 
-
-    [ClientRpc]
+    [Rpc(SendTo.Everyone)]
     private void FireBulletClientRpc(Vector3 pos, Quaternion rot, float damage)
     {
-        // 실제 총알 생성 로직 (BulletPoolManager가 각자 클라이언트에 있다고 가정)
         if (IsOwner) return; // 본인은 이미 로컬에서 쐈으므로 제외 (선택 사항)
 
-        //// 여기서 상대방 화면에 보일 총알을 생성합니다.
-        // ExecuteFire(pos, rot, damage);
+        // 여기서 상대방 화면에 보일 총알을 생성합니다.
         ExecuteLocalFire(pos, rot, damage);
     }
 
@@ -256,6 +247,8 @@ public class JoystickPlayer : BaseUnit
 
     void ExecuteLocalFire(Vector3 pos, Quaternion rot, float damage)
     {
+        animController.PlayAttack();
+
         GameObject bullet = BulletPoolManager.Instance.GetBullet();
         bullet.transform.position = pos;
 

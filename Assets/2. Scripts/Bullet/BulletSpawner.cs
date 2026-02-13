@@ -38,12 +38,19 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     }
 
 
-    void Update()
+    void FixedUpdate()
     {
-        // 플레이어가 할당되지 않았거나 게임 시작 전이면 리턴
-        if (joysticPlayer == null || BattleManager.Instance.isStarting) return;
+        if (BattleManager.Instance.isStarting) return;
 
-        //if (BattleManager.Instance.isStarting) return;
+        // 객체가 파괴되었거나(null) 죽었는지 체크
+        if (joysticPlayer == null || !joysticPlayer.gameObject.activeInHierarchy || joysticPlayer.GetDeadStatus())
+        {
+            // 타겟이 없으면 매니저에게 즉시 새 타겟 요청
+            BattleManager.Instance.UpdateSpawnerToAlivePlayer();
+
+            // 그래도 없으면 (전원 사망) 작동 중지
+            if (joysticPlayer == null) return;
+        }
 
         // 1. UI 버튼(isPressed)
         // 2. 키보드 X 또는 Space
@@ -83,17 +90,20 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
     public void FireBullet()
     {
         if (BulletPoolManager.Instance == null) return;
-        if (joysticPlayer == null || !joysticPlayer.IsOwner) return;
+
+        // 1. 타겟 유효성 검사 (Missing 또는 null 체크)
+        //if (joysticPlayer == null || joysticPlayer.gameObject == null) return;
+        //if (joysticPlayer == null) return;
 
         Transform currentSpawnPoint = joysticPlayer.networkSpawnPoint;
-        if (currentSpawnPoint == null) return;
-
-        joysticPlayer.animController.PlayAttack();
+        //if (currentSpawnPoint == null) return;
 
         ExecuteLocalFire(currentSpawnPoint);
 
+        joysticPlayer.animController.PlayAttack();
+
         //joysticPlayer.RequestFireServerRpc(spawnPoint.position, spawnPoint.rotation, joysticPlayer.playerData.ATT);
-        joysticPlayer.RequestFireServerRpc(currentSpawnPoint.position, currentSpawnPoint.rotation, joysticPlayer.playerData.ATT);
+        joysticPlayer.RequestFireServerRpc(currentSpawnPoint.position, currentSpawnPoint.rotation);
 
         //if (bulletPrefab == null)
         //{
@@ -123,6 +133,7 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
         //    Debug.LogWarning("총알에 Rigidbody가 없어 물리 이동이 적용되지 않습니다.");
         //}
     }
+
     private void ExecuteLocalFire(Transform targetSpawn)
     {
         GameObject bullet = BulletPoolManager.Instance.GetBullet();
@@ -140,7 +151,6 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
             rb.linearVelocity = Vector3.zero;
             float speed = joysticPlayer.playerData.ATTSPEED != 0 ? joysticPlayer.playerData.ATTSPEED : bulletSpeed;
             rb.linearVelocity = targetSpawn.forward * speed;
-
 
             //if (joysticPlayer.playerData.ATTSPEED != 0)
             //{

@@ -206,7 +206,18 @@ public class EnemyFSM : BaseUnit
             }
 
             yield return null;
+
         }
+
+        // [중요] 서버에서만 발사 정보를 모든 클라이언트에게 전파
+        if (IsServer)
+        {
+            // 서버에서 계산된 현재 총구 위치와 회전값을 보냅니다.
+            FireEnemyBulletClientRpc(bulletPos.position, transform.rotation, enemyData.ATT);
+        }
+
+        yield return new WaitForSeconds(1.5f); // 공격 후 딜레이
+        isAttacking = false;
 
         //yield return new WaitForSeconds(0.5f);
         //GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet(enemyData.GUN);
@@ -233,59 +244,108 @@ public class EnemyFSM : BaseUnit
         //    }
         //}
 
-        // [수정] SO에 등록된 총알 프리팹을 인자로 전달하여 가져옴
-        if (enemyData.GUN != null)
+        //// [수정] SO에 등록된 총알 프리팹을 인자로 전달하여 가져옴
+        //if (enemyData.GUN != null)
+        //{
+        //    // GetBullet에 적마다 다른 총알 프리팹을 전달
+        //    GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet(enemyData.GUN); // GUN 필드 사용
+        //    bulletObj.transform.position = bulletPos.position;
+        //    Vector3 fireDir = transform.forward;
+        //    //Vector3 fireDirLow = fireDir + Vector3.down;
+
+        //    if (enemyData.type == "B")
+        //    {
+        //        //bulletObj.transform.rotation = transform.rotation * Quaternion.Euler(90f, 0, 0f);
+        //        bulletObj.transform.position = bulletPos.position + (Vector3.down * 0.5f);
+        //        bulletObj.transform.rotation = Quaternion.LookRotation(fireDir) * Quaternion.Euler(90f, 0, 0f);
+        //    }
+        //    else
+        //    {
+        //        bulletObj.transform.rotation = Quaternion.LookRotation(fireDir);
+        //    }
+
+        //    EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
+        //    if (enemyBulletScript != null)
+        //    {
+        //        enemyBulletScript.SetDamage(enemyData.ATT);
+
+        //        Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
+        //        if (rb != null)
+        //        {
+        //            //Vector3 targetPos = targetPlayer.position + Vector3.up * 1.0f;
+        //            //rb.linearVelocity = transform.forward * 5f; // 속도는 SO에 맞춰 조절 가능
+
+        //            // 물리 속도 초기화 필수 (풀링된 오브젝트이므로)
+        //            rb.linearVelocity = Vector3.zero;
+        //            rb.angularVelocity = Vector3.zero;
+
+        //            // 설정한 정면 방향으로 발사
+        //            rb.linearVelocity = fireDir * 10f;
+        //        }
+        //    }
+        //}
+
+        //// 공격 쿨타임 (다음 공격까지 대기)
+        //yield return new WaitForSeconds(1.5f);
+
+        //isAttacking = false;
+    }
+
+    [ClientRpc]
+    private void FireEnemyBulletClientRpc(Vector3 pos, Quaternion rot, float damage)
+    {
+        // 실제 총알 생성 및 물리 세팅 (각 클라이언트의 로컬 풀에서 수행)
+        ExecuteEnemyLocalFire(pos, rot, damage);
+    }
+
+    private void ExecuteEnemyLocalFire(Vector3 pos, Quaternion rot, float damage)
+    {
+        if (enemyData.GUN == null) return;
+
+        // 1. 로컬 풀에서 총알 꺼내기
+        GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet(enemyData.GUN);
+        bulletObj.transform.position = pos;
+
+        // 2. 방향 및 회전 설정
+        Vector3 fireDir = rot * Vector3.forward;
+        if (enemyData.type == "B")
         {
-            // GetBullet에 적마다 다른 총알 프리팹을 전달
-            GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet(enemyData.GUN); // GUN 필드 사용
-            bulletObj.transform.position = bulletPos.position;
-            Vector3 fireDir = transform.forward;
-            //Vector3 fireDirLow = fireDir + Vector3.down;
-
-            if (enemyData.type == "B")
-            {
-                //bulletObj.transform.rotation = transform.rotation * Quaternion.Euler(90f, 0, 0f);
-                bulletObj.transform.position = bulletPos.position + (Vector3.down * 0.5f);
-                bulletObj.transform.rotation = Quaternion.LookRotation(fireDir) * Quaternion.Euler(90f, 0, 0f);
-            }
-            else
-            {
-                bulletObj.transform.rotation = Quaternion.LookRotation(fireDir);
-            }
-
-            EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
-            if (enemyBulletScript != null)
-            {
-                enemyBulletScript.SetDamage(enemyData.ATT);
-
-                Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
-                if (rb != null)
-                {
-                    //Vector3 targetPos = targetPlayer.position + Vector3.up * 1.0f;
-                    //rb.linearVelocity = transform.forward * 5f; // 속도는 SO에 맞춰 조절 가능
-
-                    // 물리 속도 초기화 필수 (풀링된 오브젝트이므로)
-                    rb.linearVelocity = Vector3.zero;
-                    rb.angularVelocity = Vector3.zero;
-
-                    // 설정한 정면 방향으로 발사
-                    rb.linearVelocity = fireDir * 10f;
-                }
-            }
+            bulletObj.transform.position = pos + (Vector3.down * 0.5f);
+            bulletObj.transform.rotation = Quaternion.LookRotation(fireDir) * Quaternion.Euler(90f, 0, 0f);
+        }
+        else
+        {
+            bulletObj.transform.rotation = Quaternion.LookRotation(fireDir);
         }
 
-        // 공격 쿨타임 (다음 공격까지 대기)
-        yield return new WaitForSeconds(1.5f);
+        // 3. 데미지 및 물리 속도 설정
+        EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
+        if (enemyBulletScript != null)
+        {
+            enemyBulletScript.SetDamage(damage);
 
-        isAttacking = false;
+            Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                // 적의 총알 속도 (필요시 SO에 추가하거나 고정값 사용)
+                rb.linearVelocity = fireDir * 10f;
+            }
+        }
     }
 
     protected override void Die()
     {
+        //// 에너미 전용: 점수 획득이나 특정 아이템 드랍 로직 추가 가능
+        //ScoreManager.Instance.ScoreUpdateUI(enemyData.SCORE);
+        if (IsServer)
+        {
+            // 서버에서 점수를 계산하고, 모든 유저에게 UI 업데이트를 지시합니다.
+            // ScoreManager가 NetworkBehaviour라면 내부에서 ClientRpc를 호출하는 것이 좋습니다.
+            ScoreManager.Instance.AddScoreServer(enemyData.SCORE);
+        }
         base.Die(); // 공통 로직 실행
-
-        // 에너미 전용: 점수 획득이나 특정 아이템 드랍 로직 추가 가능
-        ScoreManager.Instance.ScoreUpdateUI(enemyData.SCORE);
     }
 
     Transform GetNearestPlayer()

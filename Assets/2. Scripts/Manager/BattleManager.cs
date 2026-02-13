@@ -278,7 +278,7 @@ public class BattleManager : MonoBehaviour
         foreach (var p in joystickPlayers)
         {
             // activeSelf뿐만 아니라 체력이나 별도의 isDead 플래그가 있다면 함께 체크하는 것이 좋습니다.
-            if (p != null && p.gameObject.activeSelf)
+            if (p != null && p.gameObject.activeSelf && !p.GetDeadStatus())
             {
                 alivePlayers++;
             }
@@ -287,7 +287,8 @@ public class BattleManager : MonoBehaviour
         // 2. 생존자가 남아있다면 게임 오버를 시키지 않고 리턴
         if (alivePlayers > 0)
         {
-            Debug.Log($"아직 {alivePlayers}명의 플레이어가 살아있습니다.");
+            //Debug.Log($"아직 {alivePlayers}명의 플레이어가 살아있습니다.");
+            UpdateSpawnerToAlivePlayer();
             return;
         }
 
@@ -301,7 +302,20 @@ public class BattleManager : MonoBehaviour
 
         // 필요하다면 여기서 결과창 UI를 띄우는 RPC 호출
     }
+    public void UpdateSpawnerToAlivePlayer()
+    {
+        JoystickPlayer survivor = joystickPlayers.Find(p => p != null &&
+                                                        p.gameObject.activeInHierarchy &&
+                                                        !p.GetDeadStatus());
+        //// 리스트에서 죽지 않은(isDead == false) 첫 번째 플레이어를 찾습니다.
+        //JoystickPlayer survivor = joystickPlayers.Find(p => p != null && !p.GetDeadStatus());
 
+        if (survivor != null && bulletSpawner != null)
+        {
+            bulletSpawner.SetTargetPlayer(survivor);
+            Debug.Log($"[Target Change] 새 타겟: {survivor.name}");
+        }
+    }
 
     private void CheckBlocksBounds()
     {

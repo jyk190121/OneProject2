@@ -39,7 +39,6 @@ public class BaseUnit : NetworkBehaviour
         if (isDead) return;
 
         isDead = true;
-        GetComponent<NetworkObject>().Despawn();
         //gameObject.SetActive(false);
         // 사망 이펙트 생성
         if (deathEffectPrefab != null)
@@ -50,6 +49,11 @@ public class BaseUnit : NetworkBehaviour
             // 이펙트도 일정 시간 뒤 삭제 (또는 이펙트 자체에 AutoDisable이 있다면 생략)
             Destroy(effect, 1.5f);
         }
+        if (BattleManager.Instance != null)
+        {
+            BattleManager.Instance.GameOver(); // 이 함수 내부에서 UpdateSpawnerToAlivePlayer()를 호출함
+        }
+        GetComponent<NetworkObject>().Despawn();
     }
 
     public void Heal(float heal)
@@ -71,4 +75,9 @@ public class BaseUnit : NetworkBehaviour
         deathEffectPrefab = effect;
     }
 
+
+    public bool GetDeadStatus()
+    {
+        return isDead;
+    }
 }

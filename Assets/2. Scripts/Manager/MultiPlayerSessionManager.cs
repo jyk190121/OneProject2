@@ -39,7 +39,7 @@ public class MultiPlayerSessionManager : MonoBehaviour
             //멀티플레이어 초기화
             await UnityServices.InitializeAsync();
             //익명로그인
-            //각 플레이어를 고유한 식별을
+            //각 플레이어를 고유한 식별을 불러옴
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
             print($"익명 로그인 성공 {AuthenticationService.Instance.PlayerId}");
         }

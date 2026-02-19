@@ -82,9 +82,22 @@ public class BattleManager : MonoBehaviour
         if (!isGameOver)
         {
             CheckBlocksBounds();
-            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+            //if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+            //{
+            //    if (!isLoopStarted) // 변수 하나 추가: bool isLoopStarted = false;
+            //    {
+            //        isLoopStarted = true;
+            //        StartCoroutine(BlockSpawnLoop());
+            //    }
+            //}
+
+            // [수정] 멀티플레이 서버이거나, 아예 네트워크 매니저가 없는(싱글) 상태일 때 루프 시작
+            bool isSingleMode = NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening;
+            bool isServer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer;
+
+            if (isSingleMode || isServer)
             {
-                if (!isLoopStarted) // 변수 하나 추가: bool isLoopStarted = false;
+                if (!isLoopStarted)
                 {
                     isLoopStarted = true;
                     StartCoroutine(BlockSpawnLoop());
@@ -183,7 +196,7 @@ public class BattleManager : MonoBehaviour
         //yield return new WaitForSeconds(1f);
 
         countTxt.color = Color.blue;
-        countTxt.text = "GO";
+        countTxt.text = "GO!!";
         isStarting = false;
 
         yield return new WaitForSeconds(0.5f);
@@ -242,8 +255,11 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator CreateBlock(int r, int ea)
     {
-        //if (!NetworkManager.Singleton.IsServer) yield break;
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) yield break;
+        //if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) yield break;
+
+        // [1] 멀티플레이 중인데 서버가 아니라면 중단
+        bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        if (isNetworkActive && !NetworkManager.Singleton.IsServer) yield break;
 
         for (int i = 0; i < ea; i++)
         {
@@ -253,13 +269,18 @@ public class BattleManager : MonoBehaviour
 
             Vector3 spawnPosition = new Vector3(clampX, y, clampZ);
 
-            // [해결] transPos를 거치지 않고 직접 위치를 지정하여 생성
-            // Quaternion.identity는 회전값 없음(0,0,0)을 의미합니다.
-            //GameObject newBlock = Instantiate(block[r], transform);
             GameObject newBlock = Instantiate(block[r], spawnPosition, Quaternion.identity);
-            if (newBlock.TryGetComponent<NetworkObject>(out var netObj))
+
+            //if (newBlock.TryGetComponent<NetworkObject>(out var netObj))
+            //{
+            //    netObj.Spawn();
+            //    newBlock.transform.position = spawnPosition;
+            //}
+
+            // [2] 멀티플레이 시에는 Spawn() 호출, 싱글 시에는 그냥 생성 유지
+            if (isNetworkActive && newBlock.TryGetComponent<NetworkObject>(out var netObj))
             {
-                netObj.Spawn(); // 이제 모든 클라이언트 화면에 동일한 위치에 생성됩니다.
+                netObj.Spawn();
                 newBlock.transform.position = spawnPosition;
             }
 
@@ -288,14 +309,12 @@ public class BattleManager : MonoBehaviour
         // 2. 생존자가 남아있다면 게임 오버를 시키지 않고 리턴
         if (alivePlayers > 0)
         {
-            //Debug.Log($"아직 {alivePlayers}명의 플레이어가 살아있습니다.");
             UpdateSpawnerToAlivePlayer();
             return;
         }
 
         // 3. 모든 플레이어가 죽었을 때만 실행되는 로직
         isGameOver = true;
-        Debug.Log("모든 플레이어 사망. 게임 오버!");
 
         // 에너미 매니저에게 정지 신호 전달
         EnemyManager em = FindFirstObjectByType<EnemyManager>();
@@ -314,22 +333,29 @@ public class BattleManager : MonoBehaviour
         if (survivor != null && bulletSpawner != null)
         {
             bulletSpawner.SetTargetPlayer(survivor);
-            Debug.Log($"[Target Change] 새 타겟: {survivor.name}");
+            print($"[Target Change] 새 타겟: {survivor.name}");
         }
-        // 시네머신 카메라 타겟 변경 
-        var vcam = GameObject.FindAnyObjectByType<Unity.Cinemachine.CinemachineCamera>();
+        // 시네머신 카메라 타겟 변경
+        var vcam = FindAnyObjectByType<Unity.Cinemachine.CinemachineCamera>();
+        if (vcam == null || GameSceneManager.Instance.SceneName() == "Single") return;
         if (vcam != null)
         {
             vcam.Target.TrackingTarget = survivor.transform;
             vcam.Target.LookAtTarget = survivor.transform;
-            Debug.Log($"[Camera] 관전 타겟이 {survivor.name}로 변경되었습니다.");
+            print($"[Camera] 관전 타겟이 {survivor.name}로 변경되었습니다.");
         }
 
     }
 
     private void CheckBlocksBounds()
     {
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+        //if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+
+        // [1] 멀티플레이 중인데 서버가 아니라면 중단
+        bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        if (isNetworkActive && !NetworkManager.Singleton.IsServer) return;
+
+
         // [중요] 리스트 순회 시 원소를 삭제해야 하므로 반드시 역순(for)으로 순회합니다.
         for (int i = activeBlocks.Count - 1; i >= 0; i--)
         {
@@ -347,22 +373,25 @@ public class BattleManager : MonoBehaviour
             // 설정한 범위를 하나라도 벗어났는지 체크
             if (Mathf.Abs(pos.x) > limitX || Mathf.Abs(pos.z) > limitZ || pos.y < limitY)
             {
-                // 씬에서 제거
-                //Destroy(target);
+                //if (target.TryGetComponent<NetworkObject>(out var netObj))
+                //{
+                //    netObj.Despawn();
+                //}
 
-                if (target.TryGetComponent<NetworkObject>(out var netObj))
+                // [2] 네트워크 객체이고 네트워크가 활성 상태면 Despawn, 아니면 일반 Destroy
+                if (isNetworkActive && target.TryGetComponent<NetworkObject>(out var netObj) && netObj.IsSpawned)
                 {
                     netObj.Despawn();
                 }
                 else
                 {
-                    Destroy(target); // NetworkObject가 없다면 일반 삭제
+                    Destroy(target);
                 }
 
                 // 리스트에서 제거
                 activeBlocks.RemoveAt(i);
 
-                Debug.Log($"박스가 범위를 벗어나 제거되었습니다: {pos}");
+                print($"박스가 범위를 벗어나 제거되었습니다: {pos}");
             }
         }
     }

@@ -17,21 +17,37 @@ public class JoystickPlayer : BaseUnit
 
     public Player playerData; // P1_Data, P2_Data 등을 각각 할당
 
-    //public bool isLocalPlayer = true; // 네트워크 매니저가 스폰할 때 설정해줌
+    // JoystickPlayer 내부 권한 체크 로직
+    private bool CanControl => (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening) || IsOwner;
 
-    public override void OnNetworkSpawn()
+    // 초기화 로직을 공통 함수로 분리
+    private void InitPlayer()
     {
         if (BattleManager.Instance != null)
         {
             BattleManager.Instance.RegisterPlayer(this);
             anim = GetComponent<Animator>();
             animController = new AnimController(anim);
-
             InitStats(playerData.HP);
-
             SetDeathEffect(playerData.DIEEFFECT);
         }
+    }
+   
 
+    public override void OnNetworkSpawn()
+    {
+        //if (BattleManager.Instance != null)
+        //{
+        //    BattleManager.Instance.RegisterPlayer(this);
+        //    anim = GetComponent<Animator>();
+        //    animController = new AnimController(anim);
+
+        //    InitStats(playerData.HP);
+
+        //    SetDeathEffect(playerData.DIEEFFECT);
+        //}
+
+        InitPlayer();
         if (IsOwner)
         {
             SetupLocalPlayer();
@@ -90,10 +106,21 @@ public class JoystickPlayer : BaseUnit
     //    //    // playerData.SPEED 등을 사용하여 이동 속도 설정
     //    //}
     //}
+    void Start()
+    {
+        // [추가] 네트워크가 활성화되지 않은 싱글 모드일 때만 직접 초기화
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
+        {
+            InitPlayer();
+            SetupLocalPlayer();
+        }
+    }
 
     public void FixedUpdate()
     {
-        if (!IsOwner) return;
+        //if (!IsOwner) return;
+        if (!HasControlAuthority) return;
+
         Vector3 moveDir = new Vector3(variableJoystick.Horizontal, 0, variableJoystick.Vertical);
 
         if (BattleManager.Instance.isStarting)
@@ -105,38 +132,6 @@ public class JoystickPlayer : BaseUnit
 
         Move();
 
-        //// 조이스틱 값 + 키보드(Input.cs) 값을 더합니다.
-        //float h = variableJoystick.Horizontal + Input.GetAxis("Horizontal");
-        //float v = variableJoystick.Vertical + Input.GetAxis("Vertical");
-
-        //// 방향 벡터 생성 (3D 환경이므로 x와 z축 사용)
-        //Vector3 direction = (Vector3.forward * v) + (Vector3.right * h);
-
-        //// 대각선 이동 속도 보정 (길이가 1을 넘지 않도록 normalized)
-        //if (direction.sqrMagnitude > 1f)
-        //{
-        //    direction.Normalize();
-        //}
-
-        ////Vector3 direction = Vector3.forward * variableJoystick.Vertical + Vector3.right * variableJoystick.Horizontal;
-
-        ////rb.AddForce(direction * speed * Time.fixedDeltaTime, ForceMode.Impulse);
-        //rb.linearVelocity = direction * playerData.MOVESPEED;
-
-        //HandleRotation(direction);
-
-        //// 입력값의 크기가 아주 작을 때(손을 뗐을 때)는 회전하지 않도록 함
-        //if (canRotate && direction.sqrMagnitude > 0.01f)
-        //{
-        //    // 현재 방향을 바라보는 회전값 생성
-        //    Quaternion targetRotation = Quaternion.LookRotation(direction);
-
-        //    // 즉시 회전시키거나, Lerp를 사용하여 부드럽게 회전시킬 수 있음
-        //    rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 5f);
-        //}
-
-        //animController.PlayMove(direction.sqrMagnitude);
-
         // 회전 처리
         Vector3 lookDir = Vector3.zero;
         if (moveDir.sqrMagnitude > 0.01f) lookDir = moveDir;
@@ -144,7 +139,6 @@ public class JoystickPlayer : BaseUnit
         if (lookDir != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(lookDir);
-            // 클라이언트(Owner)가 회전시키면 NetworkTransform이 이를 가로채서 서버로 보냅니다.
             rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f));
         }
     }
@@ -185,7 +179,8 @@ public class JoystickPlayer : BaseUnit
 
     private void HandleRotation(Vector3 moveDir)
     {
-        if (!IsOwner || !canRotate) return; // 내 캐릭터만 계산
+        //if (!IsOwner || !canRotate) return; // 내 캐릭터만 계산
+        if (!HasControlAuthority || !canRotate) return;
 
         Vector3 lookDir = Vector3.zero;
         // [A] 게임패드 오른쪽 스틱 입력 확인
@@ -224,6 +219,19 @@ public class JoystickPlayer : BaseUnit
         }
     }
 
+    bool HasControlAuthority
+    {
+        get
+        {
+            // 네트워크가 연결되지 않은 상태(싱글 모드)라면 조작 가능
+            if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
+                return true;
+
+            // 네트워크 연결 상태라면 IsOwner일 때만 조작 가능
+            return IsOwner;
+        }
+    }
+
     [ServerRpc]
     public void RequestFireServerRpc(Vector3 pos, Quaternion rot)
     {
@@ -233,7 +241,7 @@ public class JoystickPlayer : BaseUnit
     [ClientRpc]
     private void FireBulletClientRpc(Vector3 pos, Quaternion rot, float damage)
     {
-        if (IsOwner) return; // 본인은 이미 로컬에서 쐈으므로 제외 (선택 사항)
+        if (IsOwner) return;
 
         // 여기서 상대방 화면에 보일 총알을 생성합니다.
         ExecuteLocalFire(pos, rot, damage);

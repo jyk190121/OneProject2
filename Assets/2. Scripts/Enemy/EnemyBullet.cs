@@ -104,8 +104,12 @@ public class EnemyBullet : MonoBehaviour
         {
             if (collision.gameObject.TryGetComponent<ABOX>(out var Abox))
             {
-                var netObj = collision.gameObject.GetComponent<NetworkObject>();
-                if (netObj != null && netObj.IsSpawned)
+                //var netObj = collision.gameObject.GetComponent<NetworkObject>();
+                //if (netObj != null && netObj.IsSpawned)
+                //{
+                //    Abox.TakeDamage(1f);
+                //}
+                if (Abox != null)
                 {
                     Abox.TakeDamage(1f);
                 }

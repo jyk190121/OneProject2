@@ -88,7 +88,7 @@ public class UIToolkitManager : MonoBehaviour
 
     void GameStart()
     {
-        GameSceneManager.Instance.LoadScene("Map");
+        GameSceneManager.Instance.LoadScene("Single");
     }
 
     void RankingBoard()

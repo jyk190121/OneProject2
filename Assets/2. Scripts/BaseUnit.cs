@@ -34,26 +34,39 @@ public class BaseUnit : NetworkBehaviour
 
     protected virtual void Die()
     {
-        if (!IsServer) return;
-
         if (isDead) return;
+        //if (!IsServer) return;
+
+        // [수정] 멀티
+        bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        if (isNetworkActive && !IsServer) return;
 
         isDead = true;
-        //gameObject.SetActive(false);
-        // 사망 이펙트 생성
+
+        // 사망 이펙트 생성 (Instantiate는 싱글/멀티 공통)
         if (deathEffectPrefab != null)
         {
-            // 현재 위치와 회전값으로 생성
             GameObject effect = Instantiate(deathEffectPrefab, transform.position, transform.rotation);
-
-            // 이펙트도 일정 시간 뒤 삭제 (또는 이펙트 자체에 AutoDisable이 있다면 생략)
             Destroy(effect, 1.5f);
         }
         if (BattleManager.Instance != null)
         {
             BattleManager.Instance.GameOver(); // 이 함수 내부에서 UpdateSpawnerToAlivePlayer()를 호출함
         }
-        GetComponent<NetworkObject>().Despawn();
+        //GetComponent<NetworkObject>().Despawn();
+
+        // 멀티와 싱글 구분
+        // 네트워크 상에서는 Despawn (서버가 호출)
+        if (isNetworkActive)
+        {
+            var netObj = GetComponent<NetworkObject>();
+            if (netObj != null && netObj.IsSpawned) netObj.Despawn();
+        }
+        // 싱글 모드에서는 일반 Destroy
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     public void Heal(float heal)

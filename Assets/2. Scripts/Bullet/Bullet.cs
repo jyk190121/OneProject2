@@ -97,11 +97,6 @@ public class Bullet : MonoBehaviour
         bool isDWall = targetLayer == LayerMask.NameToLayer("D_Wall");
 
         bool enemy = targetLayer == LayerMask.NameToLayer("Enemy");
-        //bool isTarget = false;
-        //if (owner == OwnerType.Player)
-        //    isTarget = targetLayer == LayerMask.NameToLayer("Enemy");
-        //else
-        //    isTarget = targetLayer == LayerMask.NameToLayer("Player");
 
         ContactPoint contact = collision.contacts[0];
 

@@ -8,6 +8,9 @@ public class ScoreManager : NetworkBehaviour
     public TextMeshProUGUI scoreTxt;
     //int score;
 
+    // 싱글플레이용 점수 저장 변수
+    private int localScore = 0;
+
     public NetworkVariable<int> totalScore = new NetworkVariable<int>(0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
@@ -42,7 +45,6 @@ public class ScoreManager : NetworkBehaviour
         };
     }
 
-    // [중요] 이 함수는 누적된 '최종 점수'를 받아서 글자만 바꿔줍니다.
     private void UpdateScoreUI(int currentTotalScore)
     {
         if (scoreTxt != null)
@@ -51,28 +53,23 @@ public class ScoreManager : NetworkBehaviour
         }
     }
 
-    // 서버에서만 실행되는 점수 추가 함수
+    // 점수를 추가하는 통합 함수 (싱글/멀티 모두 대응)
     public void AddScoreServer(int amount)
     {
-        if (!IsServer) return;
-        totalScore.Value += amount;
+        bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        // [멀티플레이] 서버인 경우에만 NetworkVariable 수정
+        if (isNetworkActive)
+        {
+            if (IsServer)
+            {
+                totalScore.Value += amount;
+            }
+        }
+        // [싱글플레이] 일반 int 변수를 수정하고 즉시 UI 갱신
+        else
+        {
+            localScore += amount;
+            UpdateScoreUI(localScore);
+        }
     }
-    //void Start()
-    //{
-    //    score = 0;
-    //    scoreTxt.text = "0";
-    //}
-
-    //void ScoreUpdateUI(int score)
-    //{
-    //    this.score += score;
-    //    scoreTxt.text = this.score.ToString();
-    //}
-
-    //public void AddScoreServer(int amount)
-    //{
-    //    if (!IsServer) return;
-    //    totalScore.Value += amount;
-    //}
-
 }

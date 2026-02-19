@@ -35,7 +35,6 @@ public class EnemyFSM : BaseUnit
     AnimController animController;
     BattleManager battleManager;
 
-    //총알?
     public Transform bulletPos;
 
     bool isAttacking = false;
@@ -73,11 +72,11 @@ public class EnemyFSM : BaseUnit
     // Update is called once per frame
     void FixedUpdate()
     {
-        //if(currentHP <= 0 )
-        //{
-        //    Die();
-        //}
-        if (!IsServer) return;
+        //if (!IsServer) return;
+
+        // 싱글 모드이거나 멀티 서버인 경우에만 AI 작동
+        bool canUpdateAI = (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening) || IsServer;
+        if (!canUpdateAI) return;
 
         targetPlayer = GetNearestPlayer();
 
@@ -88,12 +87,30 @@ public class EnemyFSM : BaseUnit
 
     void UpdateState()
     {
-        if (!IsServer) return;
+        //if (!IsServer) return;
+        bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        if (isNetworkActive && !IsServer) return;
 
-        //float distanceSqr = (targetPlayer.position - transform.position).sqrMagnitude;
+        // [추가] 공격 애니메이션이 시작되었거나 공격 딜레이 중이라면 이동 로직을 타지 않음
+        if (isAttacking)
+        {
+            moveController.Stop();
+            return;
+        }
+
         Vector3 direction = (targetPlayer.position - transform.position);
-        direction.y = 0; // 높이 차이로 인해 땅을 보거나 하늘을 보지 않도록 고정
+        // 높이 차이로 인해 땅을 보거나 하늘을 보지 않도록 고정
+        direction.y = 0;
         bool isPathBlockedByDWall = (currentState == State.Move && moveController.currentBlockingWall != null);
+
+        if (direction.sqrMagnitude <= attackSqr || isPathBlockedByDWall)
+        {
+            currentState = State.Attack;
+        }
+        else
+        {
+            currentState = State.Move;
+        }
 
         switch (currentState)
         {
@@ -107,41 +124,6 @@ public class EnemyFSM : BaseUnit
                 HandleAttackState(attackDir);
                 break;
         }
-
-        //switch (currentState)
-        //{
-        //    case State.Idle:
-        //        HandleIdleState();
-        //        break;
-        //    case State.Move:
-        //        HandleMoveState(direction);
-        //        break;
-        //    case State.Attack:
-        //        HandleAttackState(direction);
-        //        break;
-        //}
-
-        // --- 벽 파괴 로직 추가 ---
-        // 이동 중인데 앞에 D_Wall이 감지되었다면 공격 상태로 전환
-
-        if (direction.sqrMagnitude <= attackSqr || isPathBlockedByDWall)
-        {
-            currentState = State.Attack;
-        }
-        else
-        {
-            currentState = State.Move;
-        }
-
-        //if (direction.sqrMagnitude > attackSqr)
-        //{
-        //    currentState = State.Move;
-        //}
-        //else
-        //{
-        //    currentState = State.Attack;
-        //}
-
     }
 
     void HandleIdleState()
@@ -209,86 +191,22 @@ public class EnemyFSM : BaseUnit
 
         }
 
-        // [중요] 서버에서만 발사 정보를 모든 클라이언트에게 전파
-        if (IsServer)
+        // 멀티플레이: 서버가 Rpc로 전파
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
-            // 서버에서 계산된 현재 총구 위치와 회전값을 보냅니다.
-            FireEnemyBulletClientRpc(bulletPos.position, transform.rotation, enemyData.ATT);
+            if (IsServer)
+            {
+                FireEnemyBulletClientRpc(bulletPos.position, transform.rotation, enemyData.ATT);
+            }
+        }
+        // 싱글플레이: 즉시 로컬 발사 함수 호출
+        else
+        {
+            ExecuteEnemyLocalFire(bulletPos.position, transform.rotation, enemyData.ATT);
         }
 
-        yield return new WaitForSeconds(1.5f); // 공격 후 딜레이
+        yield return new WaitForSeconds(1.5f);
         isAttacking = false;
-
-        //yield return new WaitForSeconds(0.5f);
-        //GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet(enemyData.GUN);
-
-        //GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet();
-
-        ////bulletObj.transform.SetParent(null);
-        //bulletObj.transform.position = bulletPos.position;
-        ////bulletObj.transform.rotation = Quaternion.LookRotation(direction);
-        //bulletObj.transform.rotation = transform.rotation;
-
-        //EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
-
-        //enemyBulletScript.SetDamage(enemyData.ATT);
-
-        //if (enemyBulletScript != null)
-        //{
-        //    Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
-        //    if (rb != null)
-        //    {
-        //        //rb.linearVelocity = Vector3.zero; // 이전 속도 초기화
-        //        //rb.linearVelocity = direction * 10f; // 새 방향으로 발사
-        //        rb.linearVelocity = transform.forward * 5f;
-        //    }
-        //}
-
-        //// [수정] SO에 등록된 총알 프리팹을 인자로 전달하여 가져옴
-        //if (enemyData.GUN != null)
-        //{
-        //    // GetBullet에 적마다 다른 총알 프리팹을 전달
-        //    GameObject bulletObj = BulletEnemyPoolManager.Instance.GetBullet(enemyData.GUN); // GUN 필드 사용
-        //    bulletObj.transform.position = bulletPos.position;
-        //    Vector3 fireDir = transform.forward;
-        //    //Vector3 fireDirLow = fireDir + Vector3.down;
-
-        //    if (enemyData.type == "B")
-        //    {
-        //        //bulletObj.transform.rotation = transform.rotation * Quaternion.Euler(90f, 0, 0f);
-        //        bulletObj.transform.position = bulletPos.position + (Vector3.down * 0.5f);
-        //        bulletObj.transform.rotation = Quaternion.LookRotation(fireDir) * Quaternion.Euler(90f, 0, 0f);
-        //    }
-        //    else
-        //    {
-        //        bulletObj.transform.rotation = Quaternion.LookRotation(fireDir);
-        //    }
-
-        //    EnemyBullet enemyBulletScript = bulletObj.GetComponent<EnemyBullet>();
-        //    if (enemyBulletScript != null)
-        //    {
-        //        enemyBulletScript.SetDamage(enemyData.ATT);
-
-        //        Rigidbody rb = bulletObj.GetComponent<Rigidbody>();
-        //        if (rb != null)
-        //        {
-        //            //Vector3 targetPos = targetPlayer.position + Vector3.up * 1.0f;
-        //            //rb.linearVelocity = transform.forward * 5f; // 속도는 SO에 맞춰 조절 가능
-
-        //            // 물리 속도 초기화 필수 (풀링된 오브젝트이므로)
-        //            rb.linearVelocity = Vector3.zero;
-        //            rb.angularVelocity = Vector3.zero;
-
-        //            // 설정한 정면 방향으로 발사
-        //            rb.linearVelocity = fireDir * 10f;
-        //        }
-        //    }
-        //}
-
-        //// 공격 쿨타임 (다음 공격까지 대기)
-        //yield return new WaitForSeconds(1.5f);
-
-        //isAttacking = false;
     }
 
     [ClientRpc]
@@ -337,14 +255,14 @@ public class EnemyFSM : BaseUnit
 
     protected override void Die()
     {
-        //// 에너미 전용: 점수 획득이나 특정 아이템 드랍 로직 추가 가능
-        //ScoreManager.Instance.ScoreUpdateUI(enemyData.SCORE);
-        if (IsServer)
-        {
-            // 서버에서 점수를 계산하고, 모든 유저에게 UI 업데이트를 지시합니다.
-            // ScoreManager가 NetworkBehaviour라면 내부에서 ClientRpc를 호출하는 것이 좋습니다.
-            ScoreManager.Instance.AddScoreServer(enemyData.SCORE);
-        }
+        // 에너미 전용: 점수 획득이나 특정 아이템 드랍 로직 추가 가능
+        ScoreManager.Instance.AddScoreServer(enemyData.SCORE);
+        //if (IsServer)
+        //{
+        //    // 서버에서 점수를 계산하고, 모든 유저에게 UI 업데이트를 지시합니다.
+        //    // ScoreManager가 NetworkBehaviour라면 내부에서 ClientRpc를 호출하는 것이 좋습니다.
+        //    ScoreManager.Instance.AddScoreServer(enemyData.SCORE);
+        //}
         base.Die(); // 공통 로직 실행
     }
 

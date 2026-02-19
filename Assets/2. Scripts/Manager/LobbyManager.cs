@@ -41,7 +41,7 @@ public class LobbyManager : MonoBehaviour
     {
         print($"{roomName} 방에 입장");
         MPSessionManager.CreateSessionAsync(roomName);
-        GameSceneManager.Instance.LoadScene("Multi");
+        GameSceneManager.Instance.LoadScene("Lobby");
     }
 
     public void JoinRoom()

@@ -17,9 +17,6 @@ public class JoystickPlayer : BaseUnit
 
     public Player playerData; // P1_Data, P2_Data 등을 각각 할당
 
-    // JoystickPlayer 내부 권한 체크 로직
-    private bool CanControl => (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening) || IsOwner;
-
     // 초기화 로직을 공통 함수로 분리
     private void InitPlayer()
     {
@@ -119,7 +116,7 @@ public class JoystickPlayer : BaseUnit
     public void FixedUpdate()
     {
         //if (!IsOwner) return;
-        if (!HasControlAuthority) return;
+        if (!HasControlAuthority || GameSceneManager.Instance.SceneName() == "Lobby") return;
 
         Vector3 moveDir = new Vector3(variableJoystick.Horizontal, 0, variableJoystick.Vertical);
 

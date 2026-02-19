@@ -12,8 +12,8 @@ public class MultiPlayerSessionManager : MonoBehaviour
 
     ISession Activesssion { get; set; }
 
-    const string LOBBY_SCENE_NAME = "LobbyScene";
-    const string GAME_SCENE_NAME = "GameScene";
+    const string LOBBY_SCENE_NAME = "StartScene";
+    const string GAME_SCENE_NAME = "Multi";
 
     public event Action<string, string> updateSessionInfo;
 
@@ -40,8 +40,11 @@ public class MultiPlayerSessionManager : MonoBehaviour
             await UnityServices.InitializeAsync();
             //익명로그인
             //각 플레이어를 고유한 식별을 불러옴
-            await AuthenticationService.Instance.SignInAnonymouslyAsync();
-            print($"익명 로그인 성공 {AuthenticationService.Instance.PlayerId}");
+            if (!AuthenticationService.Instance.IsSignedIn)
+            {
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                print($"익명 로그인 성공 {AuthenticationService.Instance.PlayerId}");
+            }
         }
         catch (Exception e)
         {
@@ -58,11 +61,10 @@ public class MultiPlayerSessionManager : MonoBehaviour
             var options = new SessionOptions
             {
                 //세션 이름 (로비 목록)
-                //Name = LOBBY_SCENE_NAME,
                 Name = sessionName,
                 IsPrivate = false,
                 IsLocked = false,       //true인 경우 게임 시작 후 새로운 플레이어 참가불가
-                MaxPlayers = 4
+                MaxPlayers = 2
             }.WithRelayNetwork();
             //릴레이 서버 자동할당
             //플레이어(클라이언트)들이 IP주소 몰라도 연결가능
@@ -103,7 +105,7 @@ public class MultiPlayerSessionManager : MonoBehaviour
             {
                 IsPrivate = false,
                 IsLocked = false,
-                MaxPlayers = 4
+                MaxPlayers = 2
             }.WithRelayNetwork();
 
 

@@ -330,6 +330,8 @@ public class BattleManager : MonoBehaviour
         //// 리스트에서 죽지 않은(isDead == false) 첫 번째 플레이어를 찾습니다.
         //JoystickPlayer survivor = joystickPlayers.Find(p => p != null && !p.GetDeadStatus());
 
+        if (survivor == null) return;
+
         if (survivor != null && bulletSpawner != null)
         {
             bulletSpawner.SetTargetPlayer(survivor);

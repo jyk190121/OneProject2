@@ -16,6 +16,24 @@ public class GameStart : MonoBehaviour
     //        print($"UI 셋업 완료: 호스트 여부 = {isHost}");
     //    }
     //}
+    private void Start()
+    {
+        // 세션 매니저로부터 호스트 변경 이벤트를 구독합니다.
+        if (MultiPlayerSessionManager.Instance != null)
+        {
+            MultiPlayerSessionManager.Instance.onHostChanged += HandleHostChanged;
+        }
+    }
+
+    void HandleHostChanged(bool isNowHost)
+    {
+        // 내가 새로운 호스트가 되었다면 시작 버튼을 켜줌
+        if (startBtn != null)
+        {
+            startBtn.gameObject.SetActive(isNowHost);
+            Debug.Log(isNowHost ? "방장이 되었습니다! 시작 버튼 활성" : "방장 권한 상실");
+        }
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void OnEnable()
@@ -44,5 +62,11 @@ public class GameStart : MonoBehaviour
 
             print($"UI 셋업 완료: 호스트 여부 = {isHost}");
         }
+    }
+
+    void OnDestroy()
+    {
+        if (MultiPlayerSessionManager.Instance != null)
+            MultiPlayerSessionManager.Instance.onHostChanged -= HandleHostChanged;
     }
 }

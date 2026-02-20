@@ -8,11 +8,17 @@ using Unity.Services.Multiplayer;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+
 public class MultiPlayerSessionManager : NetworkBehaviour
 {
     public static MultiPlayerSessionManager Instance { get; private set; }
 
     ISession Activesssion { get; set; }
+
+    public ISession ActiveSession => Activesssion;
+
+    // 세션 소유자가 변경되었을 때 실행될 이벤트 (UI 갱신용)
+    public event Action<bool> onHostChanged;
 
     const string LOBBY_SCENE_NAME = "StartScene";
     const string GAME_SCENE_NAME = "Multi";
@@ -57,6 +63,58 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         }
     }
 
+    // 세션 생성/참가 로직에서 이벤트를 구독하도록 수정
+    private void SubscribeToSessionEvents()
+    {
+        if (Activesssion == null) return;
+
+        // 세션 정보(인원, 소유자 등)가 변경될 때마다 호출됨
+        Activesssion.Changed += () =>
+        {
+            Debug.Log("세션 정보 변경 감지됨");
+            CheckHostMigration();
+        };
+    }
+
+    private void CheckHostMigration()
+    {
+        if (Activesssion == null) return;
+
+        // 현재 내 PlayerId가 세션의 소유자(Host) ID와 같은지 확인
+        bool isNowHost = Activesssion.IsHost;
+
+        // 만약 호스트 권한이 넘어왔다면 UI에 즉시 알림
+        if (isNowHost)
+        {
+            print("방장 권한을 승계받았습니다.");
+            // 내가 방장인데 현재 서버가 아니라면 (클라이언트였다면)
+            if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
+            {
+                StartCoroutine(MigrateToHostRoutine());
+            }
+        }
+    }
+    IEnumerator MigrateToHostRoutine()
+    {
+        // 1. 기존 클라이언트 연결 종료
+        NetworkManager.Singleton.Shutdown();
+
+        // 2. 종료될 때까지 대기
+        yield return new WaitUntil(() => !NetworkManager.Singleton.IsListening);
+        yield return new WaitForSeconds(0.5f);
+
+        // 3. 스스로 호스트(서버)로 시작
+        NetworkManager.Singleton.StartHost();
+
+        // 4. 서버 시작 완료 대기 후 UI 갱신
+        yield return new WaitUntil(() => NetworkManager.Singleton.IsServer);
+
+        var gameStartUI = FindFirstObjectByType<GameStart>();
+        if (gameStartUI != null) gameStartUI.SetupUI();
+
+        print("호스트 전환 및 UI 갱신 완료");
+    }
+
     //호스트 방 생성
     public async void CreateSessionAsync(string sessionName)
     {
@@ -75,21 +133,20 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             //플레이어(클라이언트)들이 IP주소 몰라도 연결가능
 
             Activesssion = await MultiplayerService.Instance.CreateSessionAsync(options);
+
+            SubscribeToSessionEvents();
+
             print($"세션 생성 완료 / 이름 : {Activesssion.Name} , 코드 {Activesssion.Code}");
             print("릴레이 서버 연결 완료");
 
             updateSessionInfo?.Invoke(Activesssion.Name, Activesssion.Code);
+            NetworkManager.Singleton.StartHost();
+            FindObjectOfType<GameStart>().SetupUI();
         }
         catch (Exception e)
         {
             print($"세션 생성 실패 {e.Message}");
         }
-
-        // 호스트 시작
-        NetworkManager.Singleton.StartHost();
-
-        // 버튼 UI 업데이트 호출
-        FindObjectOfType<GameStart>().SetupUI();
     }
 
     //클라이언트 참가
@@ -97,6 +154,15 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     {
         try
         {
+            // [추가] 만약 이전 연결이 남아있다면 강제 종료
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            {
+                Debug.Log("이전 네트워크 연결이 남아있어 종료합니다.");
+                NetworkManager.Singleton.Shutdown();
+                await System.Threading.Tasks.Task.Delay(300);
+            }
+
+
             //퀵 조인 옵션 설정
             var joinOptions = new QuickJoinOptions
             {
@@ -123,21 +189,34 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             //멀티플레이어서비스한테 매치메이킹 요청
             Activesssion = await MultiplayerService.Instance.MatchmakeSessionAsync(joinOptions, sessionOptions);
 
-            print($"세션 참가 완료 / 코드 {Activesssion.Code}");
-            print($"현재 플레이어 수 :{Activesssion.Players.Count} / {Activesssion.MaxPlayers}");
 
-            updateSessionInfo?.Invoke(Activesssion.Name, Activesssion.Code);
+            if (Activesssion != null)
+            {
+                SubscribeToSessionEvents();
+
+                print($"세션 참가 완료 / 코드 {Activesssion.Code}");
+                print($"현재 플레이어 수 :{Activesssion.Players.Count} / {Activesssion.MaxPlayers}");
+
+                updateSessionInfo?.Invoke(Activesssion.Name, Activesssion.Code);
+
+                NetworkManager.Singleton.StartClient();
+                FindObjectOfType<GameStart>().SetupUI();
+
+                // SetupUI를 바로 부르기보다 한 프레임 뒤에 부르는 것이 안전
+                StartCoroutine(DelayedSetupUI());
+            }
         }
         catch (Exception e)
         {
             print($"퀵 조인 실패 {e.Message}");
         }
+    }
 
-        // 클라이언트 시작
-        NetworkManager.Singleton.StartClient();
-
-        // 버튼 UI 업데이트 호출 (이때 클라이언트는 버튼이 꺼짐)
-        FindObjectOfType<GameStart>().SetupUI();
+    IEnumerator DelayedSetupUI()
+    {
+        yield return null; // 한 프레임 대기
+        var ui = FindFirstObjectByType<GameStart>();
+        if (ui != null) ui.SetupUI();
     }
 
     //public void StartSession()
@@ -168,43 +247,51 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
     public async void LeaveSession()
     {
+        //try
+        //{
+        //    await Activesssion.LeaveAsync();
+        //    print("세션에서 나감");
+
+        //    Activesssion = null;
+
+        //    //로비 씬으로 이동
+        //    NetworkManager.Singleton.SceneManager.LoadScene(LOBBY_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        //}
+        //catch (Exception e)
+        //{
+        //    print($"세션 나감 실패 {e.Message}");
+        //}
+
         try
         {
-            await Activesssion.LeaveAsync();
-            print("세션에서 나감");
-
-            Activesssion = null;
-
-            //로비 씬으로 이동
-            NetworkManager.Singleton.SceneManager.LoadScene(LOBBY_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            if (Activesssion != null)
+            {
+                // MultiplayerService를 거치지 않고 세션 객체에서 직접 호출
+                await Activesssion.LeaveAsync();
+                print("세션에서 퇴장했습니다.");
+            }
         }
         catch (Exception e)
         {
-            print($"세션 나감 실패 {e.Message}");
+            print($"퇴장 실패: {e.Message}");
+        }
+        finally
+        {
+
+            // 핵심: 네트워크 매니저를 완전히 셧다운하고 세션 변수를 비웁니다.
+            if (NetworkManager.Singleton != null)
+            {
+                NetworkManager.Singleton.Shutdown();
+            }
+
+            Activesssion = null;
+
+            // 씬 이동
+            //NetworkManager.Singleton.SceneManager.LoadScene(LOBBY_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            await System.Threading.Tasks.Task.Delay(500);
+            GameSceneManager.Instance.LoadScene(LOBBY_SCENE_NAME);
         }
     }
-
-    //// 세션 객체에 플레이어 참가 이벤트 연결
-    //void SubscribeToSessionEvents()
-    //{
-    //    if (Activesssion == null) return;
-
-    //    // 플레이어 목록이 갱신될 때마다 호출되는 이벤트 (SDK 버전에 따라 다를 수 있음)
-    //    // 만약 이벤트가 없다면 코루틴으로 인원수를 체크해야 합니다.
-    //    Activesssion.PlayerJoined += (player) => {
-    //        CheckFullAndStart();
-    //    };
-    //}
-
-    //void CheckFullAndStart()
-    //{
-    //    // 호스트만 씬 로드를 제어해야 함
-    //    if (NetworkManager.Singleton.IsServer && Activesssion.Players.Count >= Activesssion.MaxPlayers)
-    //    {
-    //        print("모든 플레이어 입장 완료! 씬을 시작합니다.");
-    //        StartSession(); // 기존에 만든 씬 로드 함수 호출
-    //    }
-    //}
 
     public IEnumerator WaitForPlayersRoutine()
     {

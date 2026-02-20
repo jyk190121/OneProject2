@@ -35,18 +35,21 @@ public class LobbyManager : MonoBehaviour
         if (roomNameTxt == null || codeNameTxt == null) return;
         roomNameTxt.text = name;
         codeNameTxt.text = code;
+
+        StopAllCoroutines();
+        StartCoroutine(MPSessionManager.WaitForPlayersRoutine());
     }
 
     public void CreateRoom(string roomName)
     {
         print($"{roomName} 방에 입장");
         MPSessionManager.CreateSessionAsync(roomName);
-        GameSceneManager.Instance.LoadScene("Lobby");
+        //GameSceneManager.Instance.LoadScene("Multi");
+        //StartCoroutine(MPSessionManager.WaitForPlayersRoutine());
     }
 
     public void JoinRoom()
     {
-        print("방에 입장");
         MPSessionManager.QuickJoinSessionAsync();
     }
 
@@ -54,4 +57,6 @@ public class LobbyManager : MonoBehaviour
     {
         MPSessionManager.StartSession();
     }
+
+
 }

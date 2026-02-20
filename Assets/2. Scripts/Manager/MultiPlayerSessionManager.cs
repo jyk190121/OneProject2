@@ -1,12 +1,15 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Multiplayer;
+using Unity.Services.Qos.V2.Models;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class MultiPlayerSessionManager : MonoBehaviour
+public class MultiPlayerSessionManager : NetworkBehaviour
 {
     public static MultiPlayerSessionManager Instance { get; private set; }
 
@@ -16,6 +19,8 @@ public class MultiPlayerSessionManager : MonoBehaviour
     const string GAME_SCENE_NAME = "Multi";
 
     public event Action<string, string> updateSessionInfo;
+
+    public GameObject playerPrefab;
 
     void Awake()
     {
@@ -123,9 +128,30 @@ public class MultiPlayerSessionManager : MonoBehaviour
         }
     }
 
+    //public void StartSession()
+    //{
+    //    NetworkManager.Singleton.SceneManager.LoadScene(GAME_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
+    //}
+
     public void StartSession()
     {
-        NetworkManager.Singleton.SceneManager.LoadScene(GAME_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        if (NetworkManager.Singleton.IsServer)
+        {
+            // 중요: 씬 로드 이벤트를 구독합니다. (함수와 이벤트를 연결)
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnMultiSceneLoaded;
+
+            var status = NetworkManager.Singleton.SceneManager.LoadScene(
+                GAME_SCENE_NAME,
+                UnityEngine.SceneManagement.LoadSceneMode.Single
+            );
+
+            if (status != SceneEventProgressStatus.Started)
+            {
+                Debug.LogWarning("씬 로드 시작 실패: " + status);
+                // 실패 시 이벤트 해제
+                NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnMultiSceneLoaded;
+            }
+        }
     }
 
     public async void LeaveSession()
@@ -144,5 +170,84 @@ public class MultiPlayerSessionManager : MonoBehaviour
         {
             print($"세션 나감 실패 {e.Message}");
         }
+    }
+
+    //// 세션 객체에 플레이어 참가 이벤트 연결
+    //void SubscribeToSessionEvents()
+    //{
+    //    if (Activesssion == null) return;
+
+    //    // 플레이어 목록이 갱신될 때마다 호출되는 이벤트 (SDK 버전에 따라 다를 수 있음)
+    //    // 만약 이벤트가 없다면 코루틴으로 인원수를 체크해야 합니다.
+    //    Activesssion.PlayerJoined += (player) => {
+    //        CheckFullAndStart();
+    //    };
+    //}
+
+    //void CheckFullAndStart()
+    //{
+    //    // 호스트만 씬 로드를 제어해야 함
+    //    if (NetworkManager.Singleton.IsServer && Activesssion.Players.Count >= Activesssion.MaxPlayers)
+    //    {
+    //        print("모든 플레이어 입장 완료! 씬을 시작합니다.");
+    //        StartSession(); // 기존에 만든 씬 로드 함수 호출
+    //    }
+    //}
+
+    public IEnumerator WaitForPlayersRoutine()
+    {
+        while (Activesssion != null)
+        {
+            // 2명이 찼는지 확인
+            if (Activesssion.Players.Count >= 2)
+            {
+                print("2인 접속 확인, 3초 후 게임 시작!");
+                yield return new WaitForSeconds(3f);
+                StartSession();
+                yield break; // 코루틴 종료
+            }
+
+            yield return new WaitForSeconds(1f); // 1초마다 확인
+        }
+    }
+    void OnMultiSceneLoaded(string sceneName, LoadSceneMode mode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    {
+        if (sceneName == GAME_SCENE_NAME && IsServer)
+        {
+            // 이벤트가 중복 실행되지 않도록 한 번 실행 후 바로 해제
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnMultiSceneLoaded;
+
+            foreach (ulong clientId in clientsCompleted)
+            {
+                SpawnPlayerForClient(clientId);
+            }
+        }
+    }
+
+    // 소환 로직 별도 분리 (가독성 및 유지보수)
+    private void SpawnPlayerForClient(ulong clientId)
+    {
+        if (playerPrefab == null)
+        {
+            Debug.LogError("PlayerPrefab이 할당되지 않았습니다!");
+            return;
+        }
+
+        // 클라이언트 ID에 따라 위치 분기 (0번 호스트, 1번 클라이언트)
+        Vector3 spawnPos = (clientId == 0) ? new Vector3(-3, 1, 0) : new Vector3(3, 1, 0);
+
+        GameObject playerInstance = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
+        NetworkObject netObj = playerInstance.GetComponent<NetworkObject>();
+
+        // 이 함수가 실제로 네트워크 상에 객체를 생성하고 소유권을 부여함
+        netObj.SpawnAsPlayerObject(clientId);
+
+        print($"플레이어 소환 완료: ClientId {clientId}");
+    }
+
+    // 세션 인원수 확인용 헬퍼 함수 (LobbyManager 등에서 사용)
+    public int GetPlayerCount()
+    {
+        return Activesssion?.Players?.Count ?? 0;
     }
 }

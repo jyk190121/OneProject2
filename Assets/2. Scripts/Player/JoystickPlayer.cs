@@ -44,11 +44,32 @@ public class JoystickPlayer : BaseUnit
         //    SetDeathEffect(playerData.DIEEFFECT);
         //}
 
+        //if (IsOwner)
+        //{
+        //    SetupLocalPlayer();
+        //}
+
+        //anim = GetComponent<Animator>();
+        //if (anim != null)
+        //{
+        //    animController = new AnimController(anim);
+        //}
+
+
         InitPlayer();
         if (IsOwner)
         {
             SetupLocalPlayer();
+            // 0번 플레이어(호스트)는 왼쪽, 1번 플레이어(클라이언트)는 오른쪽
+            if (OwnerClientId == 0)
+                transform.position = new Vector3(-5, 1, 0);
+            else
+                transform.position = new Vector3(5, 1, 0);
+
+            rb.useGravity = true; // 씬 시작 시 중력 켜기
         }
+
+
     }
 
     private void SetupLocalPlayer()
@@ -108,6 +129,7 @@ public class JoystickPlayer : BaseUnit
         // [추가] 네트워크가 활성화되지 않은 싱글 모드일 때만 직접 초기화
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
         {
+            rb.useGravity = true;
             InitPlayer();
             SetupLocalPlayer();
         }
@@ -238,6 +260,8 @@ public class JoystickPlayer : BaseUnit
     [ClientRpc]
     private void FireBulletClientRpc(Vector3 pos, Quaternion rot, float damage)
     {
+        // 씬 전환 직후라면 다른 클라이언트들에서 매니저가 null일 수 있음
+        if (BattleManager.Instance == null) return;
         if (IsOwner) return;
 
         // 여기서 상대방 화면에 보일 총알을 생성합니다.
@@ -252,6 +276,14 @@ public class JoystickPlayer : BaseUnit
 
     void ExecuteLocalFire(Vector3 pos, Quaternion rot, float damage)
     {
+
+        // 가드 코드: animController가 null이거나 풀 매니저가 없으면 중단
+        if (animController == null || BulletPoolManager.Instance == null)
+        {
+            print("애니메이션 컨트롤러 또는 불렛 풀 매니저가 준비되지 않았습니다.");
+            return;
+        }
+
         animController.PlayAttack();
 
         GameObject bullet = BulletPoolManager.Instance.GetBullet(pos, rot);

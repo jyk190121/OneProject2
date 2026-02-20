@@ -115,6 +115,12 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
     private void ExecuteLocalFire(Transform targetSpawn)
     {
+        if (BattleManager.Instance == null)
+        {
+            print("BattleManager가 아직 준비되지 않았습니다.");
+            return;
+        }
+
         //GameObject bullet = BulletPoolManager.Instance.GetBullet();
         GameObject bullet = BulletPoolManager.Instance.GetBullet(targetSpawn.position, targetSpawn.rotation);
 

@@ -12,7 +12,8 @@ public class GameStart : MonoBehaviour
 
     void MultiGameStart()
     {
-        GameSceneManager.Instance.LoadScene("Multi");
+        //GameSceneManager.Instance.LoadScene("Multi");
+        LobbyManager.Instance.GameStart();
     }
 
     private void OnDisable()

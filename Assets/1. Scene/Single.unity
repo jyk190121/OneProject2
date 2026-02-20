@@ -5792,7 +5792,7 @@ MonoBehaviour:
   - {fileID: 1516483732}
   - {fileID: 121052818}
   createEnemyStop: 0
-  maxEnemyCount: 200
+  maxEnemyCount: 50
   spawnDelay: 0.2
 --- !u!114 &1796376121
 MonoBehaviour:

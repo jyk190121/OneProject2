@@ -37,26 +37,25 @@ public class LobbyManager : MonoBehaviour
         codeNameTxt.text = code;
 
         StopAllCoroutines();
+        //StartCoroutine(MPSessionManager.WaitForPlayersRoutine());
+    }
+
+    public void CheckPlayer()
+    {
         StartCoroutine(MPSessionManager.WaitForPlayersRoutine());
     }
 
+    //방 생성 후 씬이동만 (대기)
     public void CreateRoom(string roomName)
     {
         print($"{roomName} 방에 입장");
         MPSessionManager.CreateSessionAsync(roomName);
-        //GameSceneManager.Instance.LoadScene("Multi");
-        //StartCoroutine(MPSessionManager.WaitForPlayersRoutine());
+        GameSceneManager.Instance.LoadScene("Lobby");
     }
 
     public void JoinRoom()
     {
         MPSessionManager.QuickJoinSessionAsync();
     }
-
-    public void GameStart()
-    {
-        MPSessionManager.StartSession();
-    }
-
 
 }

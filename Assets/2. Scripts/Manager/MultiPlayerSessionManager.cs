@@ -84,6 +84,12 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         {
             print($"세션 생성 실패 {e.Message}");
         }
+
+        // 호스트 시작
+        NetworkManager.Singleton.StartHost();
+
+        // 버튼 UI 업데이트 호출
+        FindObjectOfType<GameStart>().SetupUI();
     }
 
     //클라이언트 참가
@@ -126,6 +132,12 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         {
             print($"퀵 조인 실패 {e.Message}");
         }
+
+        // 클라이언트 시작
+        NetworkManager.Singleton.StartClient();
+
+        // 버튼 UI 업데이트 호출 (이때 클라이언트는 버튼이 꺼짐)
+        FindObjectOfType<GameStart>().SetupUI();
     }
 
     //public void StartSession()
@@ -133,7 +145,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     //    NetworkManager.Singleton.SceneManager.LoadScene(GAME_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
     //}
 
-    public void StartSession()
+    void StartSession()
     {
         if (NetworkManager.Singleton.IsServer)
         {
@@ -205,6 +217,10 @@ public class MultiPlayerSessionManager : NetworkBehaviour
                 yield return new WaitForSeconds(3f);
                 StartSession();
                 yield break; // 코루틴 종료
+            }
+            else
+            {
+                print("1인 플레이는 싱글플레이를 이용해주세요");
             }
 
             yield return new WaitForSeconds(1f); // 1초마다 확인

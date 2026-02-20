@@ -176,17 +176,17 @@ public class JoystickPlayer : BaseUnit
         animController.PlayMove(direction.sqrMagnitude);
     }
 
-    //protected override void Die()
-    //{
-    //    base.Die(); // 공통 로직(이펙트 생성 등) 실행
-    //
-    //    // 플레이어 전용: 매니저에게 게임 오버 알림
-    //    if (BattleManager.Instance != null)
-    //    {
-    //        BattleManager.Instance.GameOver();
-    //    }
-    //  
-    //}
+    protected override void Die()
+    {
+        base.Die(); // 공통 로직(이펙트 생성 등) 실행
+
+        // 플레이어 전용: 매니저에게 게임 오버 알림
+        if (BattleManager.Instance != null)
+        {
+            BattleManager.Instance.GameOver();
+        }
+
+    }
 
     //public void Shoot()
     // {

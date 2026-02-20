@@ -292,6 +292,10 @@ public class BattleManager : MonoBehaviour
 
     public void GameOver()
     {
+        // 멀티플레이라면 서버(Host)만 게임오버를 판정할 수 있게 가드
+        bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        if (isNetworkActive && !NetworkManager.Singleton.IsServer) return;
+
         // 이미 게임 오버라면 중복 실행 방지
         if (isGameOver) return;
 
@@ -306,6 +310,8 @@ public class BattleManager : MonoBehaviour
             }
         }
 
+        print($"[Check Alive] 현재 생존자 수: {alivePlayers} / 총원: {joystickPlayers.Count}");
+
         // 2. 생존자가 남아있다면 게임 오버를 시키지 않고 리턴
         if (alivePlayers > 0)
         {
@@ -319,8 +325,6 @@ public class BattleManager : MonoBehaviour
         // 에너미 매니저에게 정지 신호 전달
         EnemyManager em = FindFirstObjectByType<EnemyManager>();
         if (em != null) em.createEnemyStop = true;
-
-        // 필요하다면 여기서 결과창 UI를 띄우는 RPC 호출
     }
     public void UpdateSpawnerToAlivePlayer()
     {
@@ -356,7 +360,6 @@ public class BattleManager : MonoBehaviour
         // [1] 멀티플레이 중인데 서버가 아니라면 중단
         bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
         if (isNetworkActive && !NetworkManager.Singleton.IsServer) return;
-
 
         // [중요] 리스트 순회 시 원소를 삭제해야 하므로 반드시 역순(for)으로 순회합니다.
         for (int i = activeBlocks.Count - 1; i >= 0; i--)

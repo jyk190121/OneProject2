@@ -6731,10 +6731,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2084492500}
+  - component: {fileID: 2084492504}
   - component: {fileID: 2084492499}
   - component: {fileID: 2084492501}
   - component: {fileID: 2084492502}
-  - component: {fileID: 2084492504}
   - component: {fileID: 2084492503}
   - component: {fileID: 2084492505}
   m_Layer: 0
@@ -6756,6 +6756,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 874caeb9c0c17c8408e970d348fbc354, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   joystickPlayers: []
   isStarting: 0
   countImg: {fileID: 809636587}

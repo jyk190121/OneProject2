@@ -251,7 +251,7 @@ public class JoystickPlayer : BaseUnit
         }
     }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     public void RequestFireServerRpc(Vector3 pos, Quaternion rot)
     {
         FireBulletClientRpc(pos, rot, playerData.ATT);
@@ -276,8 +276,7 @@ public class JoystickPlayer : BaseUnit
 
     void ExecuteLocalFire(Vector3 pos, Quaternion rot, float damage)
     {
-
-        // 가드 코드: animController가 null이거나 풀 매니저가 없으면 중단
+        //null체크 추가
         if (animController == null || BulletPoolManager.Instance == null)
         {
             print("애니메이션 컨트롤러 또는 불렛 풀 매니저가 준비되지 않았습니다.");

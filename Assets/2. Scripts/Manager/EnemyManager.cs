@@ -51,7 +51,7 @@ public class EnemyManager : NetworkBehaviour
 
         while (true)
         {
-            print($"현재 몇마리 :{enemyList.Count}");
+            //print($"현재 몇마리 :{enemyList.Count}");
             // 게임 오버 시 정리 로직 (루프 나오자)
             if (BattleManager.Instance.isGameOver || createEnemyStop)
             {

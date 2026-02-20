@@ -31,11 +31,6 @@ public class ScoreManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        //// 점수가 변할 때마다 UI를 업데이트하도록 이벤트 등록
-        //totalScore.OnValueChanged += (oldValue, newValue) => {
-        //    ScoreUpdateUI(newValue);
-        //};
-
         // 1. 스폰 시점에 현재 서버에 저장된 점수로 UI 초기화
         UpdateScoreUI(totalScore.Value);
 
@@ -47,6 +42,13 @@ public class ScoreManager : NetworkBehaviour
 
     private void UpdateScoreUI(int currentTotalScore)
     {
+        if (scoreTxt == null)
+        {
+            // 씬 전환 후를 대비해 다시 찾기
+            var obj = GameObject.Find("ScoreTxt");
+            if (obj != null) scoreTxt = obj.GetComponent<TextMeshProUGUI>();
+        }
+
         if (scoreTxt != null)
         {
             scoreTxt.text = currentTotalScore.ToString();
@@ -57,19 +59,30 @@ public class ScoreManager : NetworkBehaviour
     public void AddScoreServer(int amount)
     {
         bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
-        // [멀티플레이] 서버인 경우에만 NetworkVariable 수정
+
         if (isNetworkActive)
         {
+            if (!IsSpawned) return;
+
             if (IsServer)
             {
                 totalScore.Value += amount;
             }
+            else
+            {
+                AddScoreServerRpc(amount);
+            }
         }
-        // [싱글플레이] 일반 int 변수를 수정하고 즉시 UI 갱신
         else
         {
             localScore += amount;
             UpdateScoreUI(localScore);
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void AddScoreServerRpc(int amount)
+    {
+        totalScore.Value += amount;
     }
 }

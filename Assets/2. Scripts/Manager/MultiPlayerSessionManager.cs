@@ -5,7 +5,6 @@ using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Multiplayer;
-using Unity.Services.Qos.V2.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -21,6 +20,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     public event Action<string, string> updateSessionInfo;
 
     public GameObject playerPrefab;
+    public GameObject scoreManagerPrefab;
 
     void Awake()
     {
@@ -217,6 +217,8 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             // 이벤트가 중복 실행되지 않도록 한 번 실행 후 바로 해제
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnMultiSceneLoaded;
 
+            SpawnManagers();
+
             foreach (ulong clientId in clientsCompleted)
             {
                 SpawnPlayerForClient(clientId);
@@ -249,5 +251,16 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     public int GetPlayerCount()
     {
         return Activesssion?.Players?.Count ?? 0;
+    }
+
+    void SpawnManagers()
+    {
+        // ScoreManager 생성 및 스폰
+        if (scoreManagerPrefab != null)
+        {
+            GameObject scoreObj = Instantiate(scoreManagerPrefab);
+            scoreObj.GetComponent<NetworkObject>().Spawn();
+            print("ScoreManager 네트워크 스폰 완료");
+        }
     }
 }

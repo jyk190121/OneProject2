@@ -255,15 +255,26 @@ public class EnemyFSM : BaseUnit
 
     protected override void Die()
     {
-        // 에너미 전용: 점수 획득이나 특정 아이템 드랍 로직 추가 가능
-        ScoreManager.Instance.AddScoreServer(enemyData.SCORE);
-        //if (IsServer)
-        //{
-        //    // 서버에서 점수를 계산하고, 모든 유저에게 UI 업데이트를 지시합니다.
-        //    // ScoreManager가 NetworkBehaviour라면 내부에서 ClientRpc를 호출하는 것이 좋습니다.
-        //    ScoreManager.Instance.AddScoreServer(enemyData.SCORE);
-        //}
-        base.Die(); // 공통 로직 실행
+        bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+
+        if (isNetworkActive)
+        {
+            // 서버일 때만 점수를 올립니다. 클라이언트일 때는 무시합니다.
+            // 서버가 totalScore.Value를 바꾸면, NetworkVariable의 특성상 
+            // 모든 클라이언트의 UI는 자동으로 업데이트됩니다.
+            if (IsServer)
+            {
+                //print("여길 타려나(서버 스코어)");
+                ScoreManager.Instance.AddScoreServer(enemyData.SCORE);
+            }
+        }
+        // 싱글플레이 모드인 경우
+        else
+        {
+            ScoreManager.Instance.AddScoreServer(enemyData.SCORE);
+        }
+
+        base.Die(); // 공통 로직(애니메이션, 이펙트 등) 실행
     }
 
     Transform GetNearestPlayer()

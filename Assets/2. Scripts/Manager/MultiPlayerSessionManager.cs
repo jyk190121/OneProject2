@@ -154,14 +154,16 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     {
         try
         {
-            // [추가] 만약 이전 연결이 남아있다면 강제 종료
+            // 조인 전 무조건 새 로그인 수행 (이전 ID와 작별)
+            await EnsureSignedInAsync();
+
+            // 셧다운 상태가 아니라면 다시 한 번 셧다운
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
             {
-                Debug.Log("이전 네트워크 연결이 남아있어 종료합니다.");
+                print("이전 연결 잔재 감지 -> 강제 초기화");
                 NetworkManager.Singleton.Shutdown();
-                await System.Threading.Tasks.Task.Delay(300);
+                await System.Threading.Tasks.Task.Delay(500);
             }
-
 
             //퀵 조인 옵션 설정
             var joinOptions = new QuickJoinOptions
@@ -173,7 +175,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
                 {
                     new FilterOption(FilterField.AvailableSlots, "1", FilterOperation.GreaterOrEqual)
                 },
-                Timeout = TimeSpan.FromSeconds(5),
+                Timeout = TimeSpan.FromSeconds(10),
                 CreateSession = true
             };
 
@@ -185,7 +187,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
                 MaxPlayers = 2
             }.WithRelayNetwork();
 
-
+            print("매치메이킹 시도 중...");
             //멀티플레이어서비스한테 매치메이킹 요청
             Activesssion = await MultiplayerService.Instance.MatchmakeSessionAsync(joinOptions, sessionOptions);
 
@@ -199,8 +201,9 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
                 updateSessionInfo?.Invoke(Activesssion.Name, Activesssion.Code);
 
+                await System.Threading.Tasks.Task.Delay(200);
                 NetworkManager.Singleton.StartClient();
-                FindObjectOfType<GameStart>().SetupUI();
+                //FindObjectOfType<GameStart>().SetupUI();
 
                 // SetupUI를 바로 부르기보다 한 프레임 뒤에 부르는 것이 안전
                 StartCoroutine(DelayedSetupUI());
@@ -284,12 +287,45 @@ public class MultiPlayerSessionManager : NetworkBehaviour
                 NetworkManager.Singleton.Shutdown();
             }
 
+            // ID 갱신을 위한
+            if (AuthenticationService.Instance.IsSignedIn)
+            {
+                AuthenticationService.Instance.SignOut();
+                print("플레이어 로그아웃 완료 (ID 초기화)");
+            }
+
             Activesssion = null;
 
             // 씬 이동
             //NetworkManager.Singleton.SceneManager.LoadScene(LOBBY_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
-            await System.Threading.Tasks.Task.Delay(500);
+            await System.Threading.Tasks.Task.Delay(1000);
             GameSceneManager.Instance.LoadScene(LOBBY_SCENE_NAME);
+        }
+    }
+
+    public async System.Threading.Tasks.Task EnsureSignedInAsync()
+    {
+        try
+        {
+            // 초기화가 안 되어 있다면 실행
+            if (UnityServices.State == ServicesInitializationState.Uninitialized)
+            {
+                await UnityServices.InitializeAsync();
+            }
+
+            // 이미 로그인되어 있다면 로그아웃 (확실하게 새 ID를 받기 위함)
+            if (AuthenticationService.Instance.IsSignedIn)
+            {
+                AuthenticationService.Instance.SignOut();
+            }
+
+            // 새로운 익명 로그인 시도
+            await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            print($"새로운 익명 로그인 성공: {AuthenticationService.Instance.PlayerId}");
+        }
+        catch (Exception e)
+        {
+            print($"로그인 재시도 실패: {e.Message}");
         }
     }
 

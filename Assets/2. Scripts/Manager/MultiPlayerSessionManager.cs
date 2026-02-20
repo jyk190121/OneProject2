@@ -160,22 +160,25 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     {
         try
         {
-            // [핵심] 유니티 트랜스포트 캐시 강제 삭제
+            // 1. 전송 레이어(Transport) 강제 초기화
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-
             if (transport != null)
             {
-                transport.SetConnectionData("0.0.0.0", 0);
-                Debug.Log("이전 릴레이 캐시 초기화 완료");
+                // 수동으로 주소를 비워 이전 세션과의 연결 고리를 완전히 끊음
+                transport.SetConnectionData("127.0.0.1", 0);
+                transport.DisconnectLocalClient();
+                Debug.Log("이전 전송 레이어 데이터 초기화 완료");
             }
 
+            // 2. NetworkManager 완전 셧다운 확인
             if (NetworkManager.Singleton.IsListening)
             {
                 NetworkManager.Singleton.Shutdown();
+                // 셧다운이 완료될 때까지 충분히 대기
                 await System.Threading.Tasks.Task.Delay(1000);
             }
 
-            // 로그인 새로 수행 (PlayerId 변경)
+            // 3. 신규 로그인 (PlayerId 강제 갱신)
             await EnsureSignedInAsync();
 
             var joinOptions = new QuickJoinOptions { Timeout = TimeSpan.FromSeconds(10) };
@@ -187,13 +190,16 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             {
                 SubscribeToSessionEvents();
 
-                // 조인 성공 후 씬 이동
+                // 씬 이동을 먼저 수행하여 NetworkManager가 새 씬에서 동작할 준비를 하게 함
                 GameSceneManager.Instance.LoadScene(LOBBY_SCENE_NAME);
 
-                // 릴레이 서버가 새 플레이어를 인지할 시간 충분히 부여 (self-connect 방지)
-                await System.Threading.Tasks.Task.Delay(1500);
+                // [매우 중요] 릴레이 서버가 이 플레이어의 '신규 ID'를 완전히 등록할 시간을 줍니다.
+                // 0.5초는 너무 짧을 수 있으니 2초로 늘려보세요.
+                await System.Threading.Tasks.Task.Delay(2000);
 
-                NetworkManager.Singleton.StartClient();
+                bool success = NetworkManager.Singleton.StartClient();
+                Debug.Log($"Netcode 클라이언트 시작 결과: {success}");
+
                 updateSessionInfo?.Invoke(Activesssion.Name, Activesssion.Code);
                 StartCoroutine(DelayedSetupUI());
             }
@@ -218,9 +224,35 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
     void StartSession()
     {
+        //if (NetworkManager.Singleton.IsServer)
+        //{
+        //    // 중요: 씬 로드 이벤트를 구독합니다. (함수와 이벤트를 연결)
+        //    NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnMultiSceneLoaded;
+
+        //    var status = NetworkManager.Singleton.SceneManager.LoadScene(
+        //        GAME_SCENE_NAME,
+        //        UnityEngine.SceneManagement.LoadSceneMode.Single
+        //    );
+
+        //    if (status != SceneEventProgressStatus.Started)
+        //    {
+        //        Debug.LogWarning("씬 로드 시작 실패: " + status);
+        //        // 실패 시 이벤트 해제
+        //        NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnMultiSceneLoaded;
+        //    }
+        //}
+
         if (NetworkManager.Singleton.IsServer)
         {
-            // 중요: 씬 로드 이벤트를 구독합니다. (함수와 이벤트를 연결)
+            // 실제 Netcode상에 연결된 클라이언트가 나(호스트) 포함 2명인지 확인
+            // 만약 릴레이 연결 지연으로 인해 아직 1명이라면 조금 더 기다려야 합니다.
+            if (NetworkManager.Singleton.ConnectedClientsList.Count < 2)
+            {
+                Debug.LogWarning("아직 모든 클라이언트가 Netcode 서버에 접속되지 않았습니다. 잠시 후 다시 시도합니다.");
+                // 리트라이 로직을 넣거나, 대기 시간을 더 줍니다.
+                return;
+            }
+
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnMultiSceneLoaded;
 
             var status = NetworkManager.Singleton.SceneManager.LoadScene(
@@ -231,7 +263,6 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             if (status != SceneEventProgressStatus.Started)
             {
                 Debug.LogWarning("씬 로드 시작 실패: " + status);
-                // 실패 시 이벤트 해제
                 NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnMultiSceneLoaded;
             }
         }
@@ -320,22 +351,59 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
     public IEnumerator WaitForPlayersRoutine()
     {
+        //while (Activesssion != null)
+        //{
+        //    // 2명이 찼는지 확인
+        //    if (Activesssion.Players.Count >= 2)
+        //    {
+        //        print("2인 접속 확인, 3초 후 게임 시작!");
+        //        yield return new WaitForSeconds(3f);
+        //        StartSession();
+        //        yield break; // 코루틴 종료
+        //    }
+        //    else
+        //    {
+        //        print("1인 플레이는 싱글플레이를 이용해주세요");
+        //    }
+
+        //    yield return new WaitForSeconds(1f); // 1초마다 확인
+        //}
+
+        float timeout = 20f; // 최대 20초 대기
+        float timer = 0f;
+
         while (Activesssion != null)
         {
-            // 2명이 찼는지 확인
+            // 1. 세션 인원 확인
             if (Activesssion.Players.Count >= 2)
             {
-                print("2인 접속 확인, 3초 후 게임 시작!");
-                yield return new WaitForSeconds(3f);
-                StartSession();
-                yield break; // 코루틴 종료
+                // 2. Netcode 실제 연결 확인
+                if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2)
+                {
+                    print("모든 네트워크 연결 확인됨. 게임을 시작합니다!");
+                    yield return new WaitForSeconds(1f);
+                    StartSession();
+                    yield break;
+                }
+                else
+                {
+                    timer += 0.5f;
+                    print($"플레이어 접속 대기 중... ({NetworkManager.Singleton.ConnectedClientsList.Count}/2) - {timer}s");
+                }
             }
             else
             {
-                print("1인 플레이는 싱글플레이를 이용해주세요");
+                print("세션에 다른 플레이어가 들어오기를 기다리는 중...");
             }
 
-            yield return new WaitForSeconds(1f); // 1초마다 확인
+            // 타임아웃 처리
+            if (timer >= timeout)
+            {
+                print("연결 타임아웃: 클라이언트가 세션에는 들어왔으나 네트워크 연결에 실패했습니다.");
+                yield break;
+            }
+
+            yield return new WaitForSeconds(0.5f);
         }
     }
     void OnMultiSceneLoaded(string sceneName, LoadSceneMode mode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)

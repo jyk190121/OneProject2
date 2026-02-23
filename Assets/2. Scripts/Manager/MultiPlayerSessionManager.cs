@@ -29,6 +29,8 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     public GameObject playerPrefab;
     public GameObject scoreManagerPrefab;
 
+    private bool isLeaving = false; // 퇴장 중인지 확인하는 플래그
+
     void Awake()
     {
         if (Instance == null)
@@ -72,63 +74,143 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         // 세션 정보(인원, 소유자 등)가 변경될 때마다 호출됨
         Activesssion.Changed += () =>
         {
-            Debug.Log("세션 정보 변경 감지됨");
+            if (isLeaving) return; // 나가는 중이면 무시
+            Debug.Log($"세션 정보 변경 감지됨. 소유자 여부: {Activesssion.IsHost}");
 
-            // 1. 호스트 변경 체크 (기존 로직)
             CheckHostMigration();
 
-            // 2. 인원 변경에 따른 UI 갱신 (추가)
-            // 클라이언트가 나갔을 때 호스트의 UI에서 [게임 시작] 버튼을 숨기거나 갱신해야 함
-            var gameStartUI = FindFirstObjectByType<GameStart>();
-            if (gameStartUI != null)
-            {
-                gameStartUI.SetupUI();
-            }
+            // 인원 변경 시 UI 즉시 갱신 시도
+            RefreshGameStartUI();
+            //Debug.Log("세션 정보 변경 감지됨");
+
+            //// 1. 호스트 변경 체크 (기존 로직)
+            //CheckHostMigration();
+
+            //// 2. 인원 변경에 따른 UI 갱신 (추가)
+            //// 클라이언트가 나갔을 때 호스트의 UI에서 [게임 시작] 버튼을 숨기거나 갱신해야 함
+            //var gameStartUI = FindFirstObjectByType<GameStart>();
+            //if (gameStartUI != null)
+            //{
+            //    gameStartUI.SetupUI();
+            //}
         };
     }
 
     private void CheckHostMigration()
     {
-        if (Activesssion == null) return;
+        // 퇴장 중이라면 호스트 승계 로직을 타지 않음
+        if (Activesssion == null || isLeaving) return;
 
         // 현재 내 PlayerId가 세션의 소유자(Host) ID와 같은지 확인
         bool isNowHost = Activesssion.IsHost;
 
-        // 만약 호스트 권한이 넘어왔다면 UI에 즉시 알림
-        if (isNowHost)
+        // 추가: 이벤트 호출을 통해 UI(GameStart)에 상태를 알림
+        onHostChanged?.Invoke(isNowHost);
+
+        //// 만약 호스트 권한이 넘어왔다면 UI에 즉시 알림
+        //if (isNowHost)
+        //{
+        //    print("방장이다");
+        //    // 내가 방장인데 현재 서버가 아니라면 (클라이언트였다면)
+        //    if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
+        //    {
+        //        // 여기서도 한 번 더 체크
+        //        if (!isLeaving) StartCoroutine(MigrateToHostRoutine());
+        //    }
+        //}
+
+        // 내가 세션 소유자가 되었는데, 아직 Netcode상 Host가 아니라면 승계 시작
+        if (isNowHost && (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer))
         {
-            print("방장 권한을 승계받았습니다.");
-            // 내가 방장인데 현재 서버가 아니라면 (클라이언트였다면)
-            if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
-            {
-                StartCoroutine(MigrateToHostRoutine());
-            }
+            print("<color=yellow>호스트 승계 프로세스 시작</color>");
+            StartCoroutine(MigrateToHostRoutine());
+        }
+        else
+        {
+            // 호스트가 아니더라도 UI 상태는 업데이트 (클라이언트 버튼 숨기기 등)
+            onHostChanged?.Invoke(isNowHost);
         }
     }
     IEnumerator MigrateToHostRoutine()
     {
+        //// 1. 기존 클라이언트 연결 종료
+        //NetworkManager.Singleton.Shutdown();
+
+        //// 2. 종료될 때까지 대기
+        //yield return new WaitUntil(() => !NetworkManager.Singleton.IsListening);
+        //yield return new WaitForSeconds(0.5f);
+
+        //// 3. 스스로 호스트(서버)로 시작
+        //NetworkManager.Singleton.StartHost();
+
+        //// 4. 서버 시작 완료 대기 후 UI 갱신
+        //yield return new WaitUntil(() => NetworkManager.Singleton.IsServer);
+
+        //var gameStartUI = FindFirstObjectByType<GameStart>();
+        //if (gameStartUI != null) gameStartUI.SetupUI();
+
+        //print("호스트 전환 및 UI 갱신 완료");
+
         // 1. 기존 클라이언트 연결 종료
         NetworkManager.Singleton.Shutdown();
-
-        // 2. 종료될 때까지 대기
         yield return new WaitUntil(() => !NetworkManager.Singleton.IsListening);
         yield return new WaitForSeconds(0.5f);
 
-        // 3. 스스로 호스트(서버)로 시작
-        NetworkManager.Singleton.StartHost();
+        // 2. 중요: 새 호스트로서 새로운 Relay Allocation 생성
+        var relayTask = RelayService.Instance.CreateAllocationAsync(2);
+        while (!relayTask.IsCompleted) yield return null;
+        if (relayTask.IsFaulted) { Debug.LogError("릴레이 생성 실패"); yield break; }
 
-        // 4. 서버 시작 완료 대기 후 UI 갱신
+        var allocation = relayTask.Result;
+        var joinCodeTask = RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+        while (!joinCodeTask.IsCompleted) yield return null;
+        string newJoinCode = joinCodeTask.Result;
+
+        // 3. 새로운 릴레이 데이터를 Transport에 설정
+        var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+        transport.SetHostRelayData(
+            allocation.RelayServer.IpV4,
+            (ushort)allocation.RelayServer.Port,
+            allocation.AllocationIdBytes,
+            allocation.Key,
+            allocation.ConnectionData
+        );
+
+        // 새로운 방장이 된 내가 만든 'newJoinCode'를 세션 시스템에 동기화합니다.
+        if (Activesssion != null)
+        {
+            var updateOptions = new UpdateSessionOptions { Code = newJoinCode };
+            var updateTask = MultiplayerService.Instance.UpdateSessionAsync(Activesssion.Id, updateOptions);
+            while (!updateTask.IsCompleted) yield return null;
+            Debug.Log($"세션 JoinCode 갱신 완료: {newJoinCode}");
+        }
+
+        // 4. 세션 정보 업데이트 (새로운 JoinCode를 세션에 등록해야 다른 사람이 보고 들어옴)
+        // Multiplayer Service에서 지원하는 경우 세션의 코드를 갱신하는 로직이 필요합니다.
+        // (보통 자동 연동되지만, 안될 경우 세션 속성에 명시적으로 기록하기도 합니다)
+
+        // 5. 호스트 시작
+        NetworkManager.Singleton.StartHost();
         yield return new WaitUntil(() => NetworkManager.Singleton.IsServer);
 
-        var gameStartUI = FindFirstObjectByType<GameStart>();
-        if (gameStartUI != null) gameStartUI.SetupUI();
+        // 중요: 호스트가 되었으므로 이벤트를 한 번 더 호출하여 버튼을 활성화
+        onHostChanged?.Invoke(true);
 
-        print("호스트 전환 및 UI 갱신 완료");
+        RefreshGameStartUI();
     }
-
+    void RefreshGameStartUI()
+    {
+        var gameStartUI = FindFirstObjectByType<GameStart>();
+        if (gameStartUI != null)
+        {
+            gameStartUI.SetupUI();
+        }
+    }
     //호스트 방 생성
     public async void CreateSessionAsync(string sessionName)
     {
+        isLeaving = false; // 혹시 남아있을 플래그 초기화
+
         try
         {
             // 재시작 시 안전장치: 기존 상태가 남아있다면 강제 종료
@@ -190,74 +272,64 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     {
         try
         {
+            isLeaving = false; // 플래그 초기화
 
-            var joinOptions = new QuickJoinOptions(); // 기본값 사용
+            // 1. 초기화 강도 높이기
+            if (NetworkManager.Singleton != null) NetworkManager.Singleton.Shutdown();
 
-            // 1. 전송 레이어(Transport) 강제 초기화
+            // 중요: 이전 세션 객체가 남아있다면 명시적으로 null 처리
+            Activesssion = null;
+
+            await EnsureSignedInAsync();
+            await System.Threading.Tasks.Task.Delay(500);
+
+            // 1. 기존 연결 및 데이터 완전 초기화
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             if (NetworkManager.Singleton.IsListening) NetworkManager.Singleton.Shutdown();
 
-            // 신규 로그인 (PlayerId 강제 갱신)
+            // 중요: 이전 릴레이 데이터가 남아있지 않도록 초기화
+            transport.SetRelayServerData(new Unity.Networking.Transport.Relay.RelayServerData());
             await EnsureSignedInAsync();
 
-            var matchmakingOptions = new SessionOptions
-            {
-                MaxPlayers = 2,
-                IsLocked = false,
-                IsPrivate = false
-            };
+            await System.Threading.Tasks.Task.Delay(500);
+            var joinOptions = new QuickJoinOptions();
+            var matchmakingOptions = new SessionOptions { MaxPlayers = 2, IsLocked = false, IsPrivate = false };
 
             // 퀵 조인 실행
             Activesssion = await MultiplayerService.Instance.MatchmakeSessionAsync(joinOptions, matchmakingOptions);
 
-            //if (transport != null)
-            //{
-            //    // 수동으로 주소를 비워 이전 세션과의 연결 고리를 완전히 끊음
-            //    transport.SetConnectionData("127.0.0.1", 0);
-            //    transport.DisconnectLocalClient();
-            //    print("이전 전송 레이어 데이터 초기화 완료");
-            //}
-
-            //await EnsureSignedInAsync();
-
-            //var joinOptions = new QuickJoinOptions { Timeout = TimeSpan.FromSeconds(10) };
-
-            //var sessionOptions = new SessionOptions { 
-            //    MaxPlayers = 2,
-            //    IsLocked = false,
-            //    IsPrivate = false
-            //}.WithRelayNetwork();
-
-            //Activesssion = await MultiplayerService.Instance.MatchmakeSessionAsync(joinOptions, sessionOptions);
-
             if (Activesssion != null)
             {
-                // MultiPlayer 세션은 내부적으로 Relay JoinCode를 생성하여 보관
+                // 2. 현재 방장(플레이어2)이 만든 최신 Relay JoinCode를 가져옴
                 string relayJoinCode = Activesssion.Code;
+                Debug.Log($"세션 접속 성공. 릴레이 코드: {relayJoinCode}");
 
-                //릴레이 서비스를 통해 할당 데이터 수동 로드
                 var joinAllocation = await RelayService.Instance.JoinAllocationAsync(relayJoinCode);
 
-                //Transport 설정
+                // 3. 새로운 호스트(플레이어2)의 릴레이 정보로 세팅
                 transport.SetClientRelayData(
-                joinAllocation.RelayServer.IpV4,
-                (ushort)joinAllocation.RelayServer.Port,
-                joinAllocation.AllocationIdBytes,
-                joinAllocation.Key,
-                joinAllocation.ConnectionData,
-                joinAllocation.HostConnectionData
-            );
+                    joinAllocation.RelayServer.IpV4,
+                    (ushort)joinAllocation.RelayServer.Port,
+                    joinAllocation.AllocationIdBytes,
+                    joinAllocation.Key,
+                    joinAllocation.ConnectionData,
+                    joinAllocation.HostConnectionData
+                );
 
                 SubscribeToSessionEvents();
 
-                // 씬 이동을 먼저 수행하여 NetworkManager가 새 씬에서 동작할 준비를 하게 함
+                // 씬 이동을 먼저 해서 NetworkManager가 활동할 바닥을 깔아줌
                 GameSceneManager.Instance.LoadScene(LOBBY_SCENE_NAME);
 
-                // 릴레이 서버가 이 플레이어의 '신규 ID'를 완전히 등록할 시간을 줌
+                // 릴레이 서버가 바뀐 정보를 인지할 수 있게 약간의 여유를 줌
                 await System.Threading.Tasks.Task.Delay(1000);
 
+                // 4. 클라이언트 시작
                 bool success = NetworkManager.Singleton.StartClient();
-                print($"Netcode 클라이언트 시작 결과: {success}");
+                Debug.Log($"Netcode 클라이언트 시작 시도 결과: {success}");
+
+                // 조인 시점에 클라이언트임을 명시적으로 알림
+                onHostChanged?.Invoke(false);
 
                 updateSessionInfo?.Invoke(Activesssion.Name, Activesssion.Code);
                 StartCoroutine(DelayedSetupUI());
@@ -428,10 +500,16 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         //await System.Threading.Tasks.Task.Delay(500);
         //GameSceneManager.Instance.LoadScene("StartScene");
 
+        if (isLeaving) return;
+        isLeaving = true; // 퇴장 시작 알림
+
         if (Activesssion != null)
         {
             try
             {
+                // 이벤트 구독 해제 (이게 가장 중요합니다. 자신이 나갈 때 이벤트가 호출되는 것 방지)
+                Activesssion.Changed -= () => { };
+
                 Activesssion.Changed -= CheckHostMigration;
 
                 // 클라이언트는 세션 퇴장을 기다려주는 것이 재접속에 유리합니다.
@@ -446,6 +524,9 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             NetworkManager.Singleton.Shutdown();
         }
 
+        // 인증 해제 전 잠시 대기
+        await System.Threading.Tasks.Task.Delay(300);
+
         if (AuthenticationService.Instance.IsSignedIn)
         {
             // SignOut을 하면 PlayerId가 바뀌어 새로운 유저로 인식되므로 재참여가 원활해집니다.
@@ -455,6 +536,9 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         Activesssion = null;
 
         await System.Threading.Tasks.Task.Delay(500);
+
+        // 이동 직전에 리셋
+        isLeaving = false;
         GameSceneManager.Instance.LoadScene("StartScene");
     }
 

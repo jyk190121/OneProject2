@@ -23,6 +23,8 @@ public class GameStart : MonoBehaviour
         {
             MultiPlayerSessionManager.Instance.onHostChanged += HandleHostChanged;
         }
+        // 시작하자마자 현재 상태에 맞춰 UI 세팅
+        SetupUI();
     }
 
     void HandleHostChanged(bool isNowHost)
@@ -39,6 +41,8 @@ public class GameStart : MonoBehaviour
     void OnEnable()
     {
         startBtn.onClick.AddListener(MultiGameStart);
+        // 오브젝트가 켜질 때도 한 번 더 체크 (씬 전환 대비)
+        SetupUI();
     }
 
     void MultiGameStart()
@@ -54,13 +58,26 @@ public class GameStart : MonoBehaviour
 
     public void SetupUI()
     {
+        //if (NetworkManager.Singleton != null)
+        //{
+        //    // 서버(호스트)인 경우에만 버튼을 보여줌
+        //    bool isHost = NetworkManager.Singleton.IsServer;
+        //    startBtn.gameObject.SetActive(isHost);
+
+        //    print($"UI 셋업 완료: 호스트 여부 = {isHost}");
+        //}
+
+        // 핵심: NetworkManager가 없거나 아직 서버가 아니라면 무조건 버튼을 끔
         if (NetworkManager.Singleton != null)
         {
-            // 서버(호스트)인 경우에만 버튼을 보여줌
-            bool isHost = NetworkManager.Singleton.IsServer;
-            startBtn.gameObject.SetActive(isHost);
-
-            print($"UI 셋업 완료: 호스트 여부 = {isHost}");
+            // IsServer는 Host이거나 전용 서버일 때만 true입니다.
+            bool shouldShow = NetworkManager.Singleton.IsServer;
+            startBtn.gameObject.SetActive(shouldShow);
+        }
+        else
+        {
+            // 아직 네트워크 연결 전이라면 기본적으로 비활성화
+            startBtn.gameObject.SetActive(false);
         }
     }
 

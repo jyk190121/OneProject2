@@ -325,7 +325,16 @@ public class BattleManager : MonoBehaviour
         // 에너미 매니저에게 정지 신호 전달
         EnemyManager em = FindFirstObjectByType<EnemyManager>();
         if (em != null) em.createEnemyStop = true;
+
+        StartCoroutine(StartSceneMove());
     }
+
+    IEnumerator StartSceneMove()
+    {
+        yield return new WaitForSeconds(3f);
+        GameSceneManager.Instance.LoadScene("StartScene");
+    }
+
     public void UpdateSpawnerToAlivePlayer()
     {
         JoystickPlayer survivor = joystickPlayers.Find(p => p != null &&

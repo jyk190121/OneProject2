@@ -2,12 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Multiplayer;
+using Unity.Services.Relay;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Unity.Netcode.Transports.UTP;
 
 public class MultiPlayerSessionManager : NetworkBehaviour
 {
@@ -72,7 +73,17 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         Activesssion.Changed += () =>
         {
             Debug.Log("세션 정보 변경 감지됨");
+
+            // 1. 호스트 변경 체크 (기존 로직)
             CheckHostMigration();
+
+            // 2. 인원 변경에 따른 UI 갱신 (추가)
+            // 클라이언트가 나갔을 때 호스트의 UI에서 [게임 시작] 버튼을 숨기거나 갱신해야 함
+            var gameStartUI = FindFirstObjectByType<GameStart>();
+            if (gameStartUI != null)
+            {
+                gameStartUI.SetupUI();
+            }
         };
     }
 
@@ -120,8 +131,14 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     {
         try
         {
-            // 1. 혹시 모를 이전 정보 제거
+            // 재시작 시 안전장치: 기존 상태가 남아있다면 강제 종료
             if (NetworkManager.Singleton.IsListening) NetworkManager.Singleton.Shutdown();
+
+            // 중요: 서비스 재로그인을 통해 깨끗한 상태 확보
+            await EnsureSignedInAsync();
+
+            // 이 사이에 지연을 살짝 주어 서비스 상태가 완전히 갱신되게 합니다.
+            await System.Threading.Tasks.Task.Delay(500);
 
             //세션 옵션설정
             var options = new SessionOptions
@@ -137,12 +154,25 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
             Activesssion = await MultiplayerService.Instance.CreateSessionAsync(options);
 
+            // 릴레이 할당 정보 추출 (Activession.Code가 릴레이 조인 코드와 연결)
+            var allocation = await RelayService.Instance.CreateAllocationAsync(2);
+            string relayJoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+
+            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            transport.SetHostRelayData(
+                allocation.RelayServer.IpV4,
+                (ushort)allocation.RelayServer.Port,
+                allocation.AllocationIdBytes,
+                allocation.Key,
+                allocation.ConnectionData
+            );
+
             SubscribeToSessionEvents();
 
             GameSceneManager.Instance.LoadScene(LOBBY_SCENE_NAME);
 
-            await System.Threading.Tasks.Task.Delay(500);
             NetworkManager.Singleton.StartHost();
+            await System.Threading.Tasks.Task.Delay(500);
 
             print($"세션 생성 완료 / 이름 : {Activesssion.Name} , 코드 {Activesssion.Code}");
             print("릴레이 서버 연결 완료");
@@ -160,45 +190,74 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     {
         try
         {
+
+            var joinOptions = new QuickJoinOptions(); // 기본값 사용
+
             // 1. 전송 레이어(Transport) 강제 초기화
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            if (transport != null)
-            {
-                // 수동으로 주소를 비워 이전 세션과의 연결 고리를 완전히 끊음
-                transport.SetConnectionData("127.0.0.1", 0);
-                transport.DisconnectLocalClient();
-                Debug.Log("이전 전송 레이어 데이터 초기화 완료");
-            }
+            if (NetworkManager.Singleton.IsListening) NetworkManager.Singleton.Shutdown();
 
-            // 2. NetworkManager 완전 셧다운 확인
-            if (NetworkManager.Singleton.IsListening)
-            {
-                NetworkManager.Singleton.Shutdown();
-                // 셧다운이 완료될 때까지 충분히 대기
-                await System.Threading.Tasks.Task.Delay(1000);
-            }
-
-            // 3. 신규 로그인 (PlayerId 강제 갱신)
+            // 신규 로그인 (PlayerId 강제 갱신)
             await EnsureSignedInAsync();
 
-            var joinOptions = new QuickJoinOptions { Timeout = TimeSpan.FromSeconds(10) };
-            var sessionOptions = new SessionOptions { MaxPlayers = 2 }.WithRelayNetwork();
+            var matchmakingOptions = new SessionOptions
+            {
+                MaxPlayers = 2,
+                IsLocked = false,
+                IsPrivate = false
+            };
 
-            Activesssion = await MultiplayerService.Instance.MatchmakeSessionAsync(joinOptions, sessionOptions);
+            // 퀵 조인 실행
+            Activesssion = await MultiplayerService.Instance.MatchmakeSessionAsync(joinOptions, matchmakingOptions);
+
+            //if (transport != null)
+            //{
+            //    // 수동으로 주소를 비워 이전 세션과의 연결 고리를 완전히 끊음
+            //    transport.SetConnectionData("127.0.0.1", 0);
+            //    transport.DisconnectLocalClient();
+            //    print("이전 전송 레이어 데이터 초기화 완료");
+            //}
+
+            //await EnsureSignedInAsync();
+
+            //var joinOptions = new QuickJoinOptions { Timeout = TimeSpan.FromSeconds(10) };
+
+            //var sessionOptions = new SessionOptions { 
+            //    MaxPlayers = 2,
+            //    IsLocked = false,
+            //    IsPrivate = false
+            //}.WithRelayNetwork();
+
+            //Activesssion = await MultiplayerService.Instance.MatchmakeSessionAsync(joinOptions, sessionOptions);
 
             if (Activesssion != null)
             {
+                // MultiPlayer 세션은 내부적으로 Relay JoinCode를 생성하여 보관
+                string relayJoinCode = Activesssion.Code;
+
+                //릴레이 서비스를 통해 할당 데이터 수동 로드
+                var joinAllocation = await RelayService.Instance.JoinAllocationAsync(relayJoinCode);
+
+                //Transport 설정
+                transport.SetClientRelayData(
+                joinAllocation.RelayServer.IpV4,
+                (ushort)joinAllocation.RelayServer.Port,
+                joinAllocation.AllocationIdBytes,
+                joinAllocation.Key,
+                joinAllocation.ConnectionData,
+                joinAllocation.HostConnectionData
+            );
+
                 SubscribeToSessionEvents();
 
                 // 씬 이동을 먼저 수행하여 NetworkManager가 새 씬에서 동작할 준비를 하게 함
                 GameSceneManager.Instance.LoadScene(LOBBY_SCENE_NAME);
 
-                // [매우 중요] 릴레이 서버가 이 플레이어의 '신규 ID'를 완전히 등록할 시간을 줍니다.
-                // 0.5초는 너무 짧을 수 있으니 2초로 늘려보세요.
-                await System.Threading.Tasks.Task.Delay(2000);
+                // 릴레이 서버가 이 플레이어의 '신규 ID'를 완전히 등록할 시간을 줌
+                await System.Threading.Tasks.Task.Delay(1000);
 
                 bool success = NetworkManager.Singleton.StartClient();
-                Debug.Log($"Netcode 클라이언트 시작 결과: {success}");
+                print($"Netcode 클라이언트 시작 결과: {success}");
 
                 updateSessionInfo?.Invoke(Activesssion.Name, Activesssion.Code);
                 StartCoroutine(DelayedSetupUI());
@@ -212,7 +271,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
     IEnumerator DelayedSetupUI()
     {
-        yield return null; // 한 프레임 대기
+        yield return null;
         var ui = FindFirstObjectByType<GameStart>();
         if (ui != null) ui.SetupUI();
     }
@@ -224,7 +283,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
     void StartSession()
     {
-        //if (NetworkManager.Singleton.IsServer)
+        //if (NetworkManager.Singleton.IsServer)LeaveSession
         //{
         //    // 중요: 씬 로드 이벤트를 구독합니다. (함수와 이벤트를 연결)
         //    NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnMultiSceneLoaded;
@@ -270,57 +329,133 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
     public async void LeaveSession()
     {
+        ////try
+        ////{
+        ////    await Activesssion.LeaveAsync();
+        ////    print("세션에서 나감");
+
+        ////    Activesssion = null;
+
+        ////    //로비 씬으로 이동
+        ////    NetworkManager.Singleton.SceneManager.LoadScene(LOBBY_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        ////}
+        ////catch (Exception e)
+        ////{
+        ////    print($"세션 나감 실패 {e.Message}");
+        ////}
+
         //try
         //{
-        //    await Activesssion.LeaveAsync();
-        //    print("세션에서 나감");
+        //    // Netcode 연결 먼저 종료 (가장 빠름)
+        //    if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        //    {
+        //        NetworkManager.Singleton.Shutdown();
+        //        print("Netcode Shutdown 완료");
+        //    }
 
-        //    Activesssion = null;
-
-        //    //로비 씬으로 이동
-        //    NetworkManager.Singleton.SceneManager.LoadScene(LOBBY_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        //    // 세션 퇴장 알림 (호스트일 경우 세션 자체가 삭제될 수 있음)
+        //    if (Activesssion != null)
+        //    {
+        //        // 타임아웃을 설정한 Task로 감싸서 무한 대기를 방지합니다.
+        //        var leaveTask = Activesssion.LeaveAsync();
+        //        if (await System.Threading.Tasks.Task.WhenAny(leaveTask, System.Threading.Tasks.Task.Delay(3000)) == leaveTask)
+        //        {
+        //            print("Multiplayer 세션 퇴장 성공");
+        //        }
+        //        else
+        //        {
+        //            Debug.LogWarning("세션 퇴장 응답 지연으로 인한 스킵");
+        //        }
+        //    }
         //}
         //catch (Exception e)
         //{
-        //    print($"세션 나감 실패 {e.Message}");
+        //    print($"퇴장 실패: {e.Message}");
+        //}
+        //finally
+        //{
+
+        //    // 핵심: 네트워크 매니저를 완전히 셧다운하고 세션 변수를 비웁니다.
+        //    if (NetworkManager.Singleton != null)
+        //    {
+        //        NetworkManager.Singleton.Shutdown();
+        //    }
+
+        //    // ID 갱신을 위한
+        //    if (AuthenticationService.Instance.IsSignedIn)
+        //    {
+        //        AuthenticationService.Instance.SignOut();
+        //        print("플레이어 로그아웃 완료 (ID 초기화)");
+        //    }
+
+        //    Activesssion = null;
+
+        //    // 씬 이동
+        //    //NetworkManager.Singleton.SceneManager.LoadScene(LOBBY_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        //    await System.Threading.Tasks.Task.Delay(1000);
+        //    GameSceneManager.Instance.LoadScene("StartScene");
         //}
 
-        try
+
+        //// 1. 이벤트 구독 해제 (중요: 정보 변경 시 로직이 다시 도는 것을 방지)
+        //if (Activesssion != null)
+        //{
+        //    try { Activesssion.Changed -= CheckHostMigration; } catch { }
+        //}
+
+        //// 2. Netcode 셧다운을 가장 먼저 (클라이언트와의 연결을 즉시 물리적으로 끊음)
+        //if (NetworkManager.Singleton != null)
+        //{
+        //    NetworkManager.Singleton.Shutdown();
+        //    Debug.Log("Netcode Shutdown 완료");
+        //}
+
+        //// 3. 세션 퇴장은 비동기로 던져두고 기다리지 않음 (멈춤 방지)
+        //if (Activesssion != null)
+        //{
+        //    _ = Activesssion.LeaveAsync(); // '_'는 리턴값을 무시하겠다는 뜻
+        //    Activesssion = null;
+        //}
+
+        //// 4. 서비스 초기화 및 로그아웃 (다시 접속할 때 에러 방지 핵심)
+        //if (AuthenticationService.Instance.IsSignedIn)
+        //{
+        //    AuthenticationService.Instance.SignOut();
+        //    Debug.Log("인증 정보 초기화 완료");
+        //}
+
+        //// 5. 씬 이동 (비동기 작업 결과와 상관없이 무조건 수행)
+        //await System.Threading.Tasks.Task.Delay(500);
+        //GameSceneManager.Instance.LoadScene("StartScene");
+
+        if (Activesssion != null)
         {
-            if (Activesssion != null)
+            try
             {
-                // MultiplayerService를 거치지 않고 세션 객체에서 직접 호출
+                Activesssion.Changed -= CheckHostMigration;
+
+                // 클라이언트는 세션 퇴장을 기다려주는 것이 재접속에 유리합니다.
                 await Activesssion.LeaveAsync();
-                print("세션에서 퇴장했습니다.");
+                Debug.Log("세션 서비스 퇴장 완료");
             }
+            catch (Exception e) { Debug.LogWarning($"세션 퇴장 중 오류: {e.Message}"); }
         }
-        catch (Exception e)
+
+        if (NetworkManager.Singleton != null)
         {
-            print($"퇴장 실패: {e.Message}");
+            NetworkManager.Singleton.Shutdown();
         }
-        finally
+
+        if (AuthenticationService.Instance.IsSignedIn)
         {
-
-            // 핵심: 네트워크 매니저를 완전히 셧다운하고 세션 변수를 비웁니다.
-            if (NetworkManager.Singleton != null)
-            {
-                NetworkManager.Singleton.Shutdown();
-            }
-
-            // ID 갱신을 위한
-            if (AuthenticationService.Instance.IsSignedIn)
-            {
-                AuthenticationService.Instance.SignOut();
-                print("플레이어 로그아웃 완료 (ID 초기화)");
-            }
-
-            Activesssion = null;
-
-            // 씬 이동
-            //NetworkManager.Singleton.SceneManager.LoadScene(LOBBY_SCENE_NAME, UnityEngine.SceneManagement.LoadSceneMode.Single);
-            await System.Threading.Tasks.Task.Delay(1000);
-            GameSceneManager.Instance.LoadScene("StartScene");
+            // SignOut을 하면 PlayerId가 바뀌어 새로운 유저로 인식되므로 재참여가 원활해집니다.
+            AuthenticationService.Instance.SignOut();
         }
+
+        Activesssion = null;
+
+        await System.Threading.Tasks.Task.Delay(500);
+        GameSceneManager.Instance.LoadScene("StartScene");
     }
 
     public async System.Threading.Tasks.Task EnsureSignedInAsync()

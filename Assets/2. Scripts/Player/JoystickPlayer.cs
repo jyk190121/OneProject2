@@ -1,10 +1,10 @@
 ﻿using Unity.Netcode;
 using UnityEngine;
 using Unity.Cinemachine;
+using System.Collections;
 
 public class JoystickPlayer : BaseUnit
 {
-
     //public float speed;
     public VariableJoystick variableJoystick;
     public Rigidbody rb;
@@ -16,6 +16,9 @@ public class JoystickPlayer : BaseUnit
     public bool canRotate = true;
 
     public Player playerData; // P1_Data, P2_Data 등을 각각 할당
+
+    [Header("Combat Settings")]
+    public float kickbackForce = 10f;
 
     // 초기화 로직을 공통 함수로 분리
     private void InitPlayer()
@@ -33,38 +36,13 @@ public class JoystickPlayer : BaseUnit
 
     public override void OnNetworkSpawn()
     {
-        //if (BattleManager.Instance != null)
-        //{
-        //    BattleManager.Instance.RegisterPlayer(this);
-        //    anim = GetComponent<Animator>();
-        //    animController = new AnimController(anim);
-
-        //    InitStats(playerData.HP);
-
-        //    SetDeathEffect(playerData.DIEEFFECT);
-        //}
-
-        //if (IsOwner)
-        //{
-        //    SetupLocalPlayer();
-        //}
-
-        //anim = GetComponent<Animator>();
-        //if (anim != null)
-        //{
-        //    animController = new AnimController(anim);
-        //}
-
-
         InitPlayer();
         if (IsOwner)
         {
             SetupLocalPlayer();
             // 0번 플레이어(호스트)는 왼쪽, 1번 플레이어(클라이언트)는 오른쪽
-            if (OwnerClientId == 0)
-                transform.position = new Vector3(-5, 1, 0);
-            else
-                transform.position = new Vector3(5, 1, 0);
+            if (OwnerClientId == 0) transform.position = new Vector3(-5, 1, 0);
+            else transform.position = new Vector3(5, 1, 0);
 
             rb.useGravity = true; // 씬 시작 시 중력 켜기
         }
@@ -85,7 +63,7 @@ public class JoystickPlayer : BaseUnit
         //// 조이스틱 및 UI 연결 (BattleManager를 통해 전달받은 것 사용)
         //if (variableJoystick == null) variableJoystick = BattleManager.Instance.joystick;
 
-        // [수정] 직접 매니저의 필드에 접근하여 할당 (Owner가 스스로 가져가는 방식이 더 확실합니다)
+        // 직접 매니저의 필드에 접근하여 할당 (Owner가 스스로 가져가는 방식이 더 확실합니다)
         if (BattleManager.Instance != null)
         {
             //this.variableJoystick = BattleManager.Instance.joystick;
@@ -108,30 +86,23 @@ public class JoystickPlayer : BaseUnit
         }
     }
 
-    //void Start()
-    //{
-    //    //anim = GetComponent<Animator>();
-
-    //    //animController = new AnimController(anim);
-
-    //    //BattleManager.Instance.RegisterPlayer(this);
-
-    //    //if (playerData != null)
-    //    //{
-    //    //    InitStats(playerData.HP);
-
-    //    //    SetDeathEffect(playerData.DIEEFFECT);
-    //    //    // playerData.SPEED 등을 사용하여 이동 속도 설정
-    //    //}
-    //}
-    void Start()
+    IEnumerator Start()
     {
-        // [추가] 네트워크가 활성화되지 않은 싱글 모드일 때만 직접 초기화
+        ResetStatus();
+
+        while (BattleManager.Instance == null)
+        {
+            yield return null;
+        }
+
+        BattleManager.Instance.RegisterPlayer(this);
+
+        // 네트워크가 활성화되지 않은 싱글 모드일 때만 직접 초기화
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
         {
-            rb.useGravity = true;
             InitPlayer();
             SetupLocalPlayer();
+            rb.useGravity = true;
         }
     }
 
@@ -151,15 +122,35 @@ public class JoystickPlayer : BaseUnit
 
         Move();
 
-        // 회전 처리
-        Vector3 lookDir = Vector3.zero;
-        if (moveDir.sqrMagnitude > 0.01f) lookDir = moveDir;
+        //// 회전 처리
+        //Vector3 lookDir = Vector3.zero;
+        //if (moveDir.sqrMagnitude > 0.01f) lookDir = moveDir;
 
-        if (lookDir != Vector3.zero)
+        //if (lookDir != Vector3.zero)
+        //{
+        //    Quaternion targetRotation = Quaternion.LookRotation(lookDir);
+        //    rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f));
+        //}
+    }
+    public void ResetStatus()
+    {
+        // BaseUnit에 선언되어 있을 변수들을 초기화합니다.
+        // 변수명은 사용자님의 BaseUnit 구조에 맞게 수정하세요.
+        isDead = false;
+
+        if (playerData != null)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(lookDir);
-            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f));
+            currentHP = playerData.HP; // 현재 체력을 데이터상의 최대 체력으로 복구
         }
+
+        // 혹시 리지드바디가 멈춰있을 수 있으니 초기화
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        Debug.Log($"{gameObject.name}의 상태가 초기화되었습니다. (isDead = false)");
     }
 
     private void Move()
@@ -199,42 +190,57 @@ public class JoystickPlayer : BaseUnit
     private void HandleRotation(Vector3 moveDir)
     {
         //if (!IsOwner || !canRotate) return; // 내 캐릭터만 계산
-        if (!HasControlAuthority || !canRotate) return;
+        if (!HasControlAuthority) return;
 
         Vector3 lookDir = Vector3.zero;
         // [A] 게임패드 오른쪽 스틱 입력 확인
         float rh = Input.GetAxis("LookHorizontal");
         float rv = Input.GetAxis("LookVertical");
         Vector3 stickLookDir = (Vector3.forward * rv) + (Vector3.right * rh);
+        bool isRightStickActive = stickLookDir.sqrMagnitude > 0.1f;
+        bool isMouseRightActive = Input.GetMouseButton(1);
 
-        if (lookDir != Vector3.zero)
+        // 2. [강제 회전] 오른쪽 스틱이나 마우스 입력이 있는 경우 (공격 중에도 무조건 회전)
+        if (isRightStickActive || isMouseRightActive)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(lookDir);
-            // rb.rotation 대신 transform.rotation을 사용하면 NetworkTransform이 더 잘 감지합니다.
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.fixedDeltaTime * 10f);
-        }
+            if (isRightStickActive)
+                lookDir = stickLookDir;
+            else
+                lookDir = (Input.GetMouseWorldPosition() - transform.position);
 
-        if (stickLookDir.sqrMagnitude > 0.1f)
-        {
-            lookDir = stickLookDir;
-        }
-        // [B] 마우스 클릭 중이거나 특정 조건일 때 마우스 방향 주시
-        else if (Input.GetMouseButton(1)) // 오른쪽 마우스 버튼 누를 때만 회전
-        {
-            Vector3 mouseWorldPos = Input.GetMouseWorldPosition();
-            lookDir = (mouseWorldPos - transform.position);
             lookDir.y = 0;
         }
-        // [C] 별도의 회전 입력이 없으면 이동 방향을 바라봄 (기존 방식)
+        // 3. [자동 회전] 오른쪽 입력이 없고, 왼쪽 조이스틱(이동)만 입력된 경우
         else if (moveDir.sqrMagnitude > 0.01f)
         {
+            // 공격 중(canRotate == false)이면 왼쪽 조이스틱에 의한 회전은 절대 하지 않음
+            if (!canRotate) return;
+
             lookDir = moveDir;
         }
 
+        //if (stickLookDir.sqrMagnitude > 0.1f)
+        //{
+        //    lookDir = stickLookDir;
+        //}
+        //// [B] 마우스 클릭 중이거나 특정 조건일 때 마우스 방향 주시
+        //else if (Input.GetMouseButton(1)) // 오른쪽 마우스 버튼 누를 때만 회전
+        //{
+        //    Vector3 mouseWorldPos = Input.GetMouseWorldPosition();
+        //    lookDir = (mouseWorldPos - transform.position);
+        //    lookDir.y = 0;
+        //}
+        //// [C] 별도의 회전 입력이 없으면 이동 방향을 바라봄 (기존 방식)
+        //else if (moveDir.sqrMagnitude > 0.01f)
+        //{
+        //    lookDir = moveDir;
+        //}
+
         if (lookDir != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(lookDir);
-            rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f);
+            //rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f);
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 15f));
         }
     }
 
@@ -251,7 +257,7 @@ public class JoystickPlayer : BaseUnit
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [ServerRpc]
     public void RequestFireServerRpc(Vector3 pos, Quaternion rot)
     {
         FireBulletClientRpc(pos, rot, playerData.ATT);
@@ -313,5 +319,16 @@ public class JoystickPlayer : BaseUnit
         //    // forward 방향으로 물리적인 힘 가하기
         //    rb.linearVelocity = rot * Vector3.forward * (playerData.ATTSPEED > 0 ? playerData.ATTSPEED : 10f);
         //}
+    }
+    public void ApplyKickback()
+    {
+        if (rb != null)
+        {
+            // 현재 바라보고 있는 방향의 반대 방향 계산
+            Vector3 backDirection = -transform.forward;
+
+            // 순간적인 충격량(Impulse)을 가함
+            rb.AddForce(backDirection * kickbackForce, ForceMode.Impulse);
+        }
     }
 }

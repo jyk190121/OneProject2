@@ -22,10 +22,10 @@ public class BattleManager : MonoBehaviour
     public GameObject box_B;       // 떨어지는 블록 (밀림)
     public GameObject wallB;       // Y축 고정 블록 (안밀림)
 
-    // [추가] 생성된 블록들을 추적하기 위한 리스트
+    // 생성된 블록들을 추적하기 위한 리스트
     private List<GameObject> activeBlocks = new List<GameObject>();
 
-    // [추가] 맵 범위 설정
+    // 맵 범위 설정
     private float limitX = 50f;
     private float limitZ = 50f;
     private float limitY = -10f; // 낭떠러지 체크용
@@ -38,14 +38,9 @@ public class BattleManager : MonoBehaviour
     private int lastAssignedIndex = -1;
     bool isLoopStarted = false;
 
-    private void OnEnable()
-    {
-
-        isStarting = true;
-
-        StartCoroutine(StartDelayRoutine());
-        //StartCoroutine(BlockSpawnLoop());
-    }
+    //싱글용
+    [Header("Single Mode Settings")]
+    public GameObject playerPrefab; // 인스펙터에서 플레이어 프리팹 할당
 
     private void OnDisable()
     {
@@ -54,17 +49,18 @@ public class BattleManager : MonoBehaviour
 
     void Awake()
     {
-
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(Instance);
         }
         else
         {
             Destroy(gameObject);
             return;
         }
+
+        RefreshUIReferences();
+
         if (bulletSpawner == null)
         {
             bulletSpawner = FindFirstObjectByType<BulletSpawner>();
@@ -74,6 +70,44 @@ public class BattleManager : MonoBehaviour
         block[1] = box_B;
         block[2] = wallB;
         Application.targetFrameRate = 60;
+    }
+    void Start()
+    {
+        if(ScoreManager.Instance != null) ScoreManager.Instance.ResetScore();
+
+        // 1. 모든 상태 초기화 (씬 로드 시마다 깨끗하게 시작)
+        isGameOver = false;
+        isLoopStarted = false;
+        isStarting = true;
+
+        // 리스트를 완전히 새로 생성하여 이전 판의 잔재를 지웁니다.
+        joystickPlayers = new List<JoystickPlayer>();
+        activeBlocks = new List<GameObject>();
+        lastAssignedIndex = -1;
+        //joystickPlayers.Clear(); // 리스트를 확실히 비워줍니다.
+        //lastAssignedIndex = -1;
+
+        // 2. 싱글 모드라면 플레이어를 '딱 한 번'만 생성합니다.
+        bool isSingleMode = NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening;
+        if (isSingleMode)
+        {
+            SpawnSinglePlayer();
+        }
+
+        // 3. UI 및 카운트다운 시작
+        StartCoroutine(StartDelayRoutine());
+    }
+    void SpawnSinglePlayer()
+    {
+        if (playerPrefab != null)
+        {
+            // 생성된 플레이어는 자신의 Start()에서 BattleManager.Instance.RegisterPlayer(this)를 호출할 것입니다.
+            Instantiate(playerPrefab, Vector3.up, Quaternion.identity);
+        }
+        else
+        {
+            Debug.LogError("BattleManager: Player Prefab이 할당되지 않았습니다!");
+        }
     }
 
     void Update()
@@ -108,30 +142,67 @@ public class BattleManager : MonoBehaviour
 
     public void RegisterPlayer(JoystickPlayer player)
     {
-        if (!joystickPlayers.Contains(player))
+        if (player == null) return;
+
+        if (joystickPlayers.Contains(player)) return;
+        joystickPlayers.Add(player);
+
+        StartCoroutine(DeferredRegistration(player));
+        //// 리스트 청소: 혹시 남아있을지 모를 파괴된 객체 제거
+        //joystickPlayers.RemoveAll(p => p == null);
+
+        //if (!joystickPlayers.Contains(player))
+        //{
+        //    joystickPlayers.Add(player);
+        //
+        //    // 현재 이 플레이어가 로컬 플레이어라면 UI 연결
+        //    if (player.IsOwner)
+        //    {
+        //
+        //        RefreshUIReferences(); // 씬 이동 후라면 여기서 UI를 새로 잡음
+        //
+        //        player.variableJoystick = this.joystick;
+        //        player.HP_BAR = this.playerHP_bar;
+        //
+        //        // BulletSpawner에도 내 캐릭터를 가장 먼저 등록
+        //        if (bulletSpawner != null) bulletSpawner.SetTargetPlayer(player);
+        //    }
+        //
+        //
+        //    if (joystickPlayers.Count == 1)
+        //    {
+        //        AssignNextPlayerToSpawner();
+        //    }
+        //}
+    }
+    IEnumerator DeferredRegistration(JoystickPlayer player)
+    {
+        // 씬의 모든 오브젝트가 Awake/Start를 마칠 때까지 한 프레임 대기
+        yield return null;
+
+        if (player == null) yield break;
+
+        // 3. UI 참조 강제 갱신 (못 찾았다면 다시 찾기)
+        RefreshUIReferences();
+
+        if (player.IsOwner)
         {
-            joystickPlayers.Add(player);
+            // 매니저가 가진 확정된 참조를 플레이어에게 전달
+            player.variableJoystick = this.joystick;
+            player.HP_BAR = this.playerHP_bar;
 
-            // 현재 이 플레이어가 로컬 플레이어라면 UI 연결
-            if (player.IsOwner)
-            {
+            if (bulletSpawner != null)
+                bulletSpawner.SetTargetPlayer(player);
 
-                RefreshUIReferences(); // 씬 이동 후라면 여기서 UI를 새로 잡음
+            Debug.Log("[Register] 로컬 플레이어 UI 연결 완료");
+        }
 
-                player.variableJoystick = this.joystick;
-                player.HP_BAR = this.playerHP_bar;
-
-                // BulletSpawner에도 내 캐릭터를 가장 먼저 등록
-                if (bulletSpawner != null) bulletSpawner.SetTargetPlayer(player);
-            }
-
-
-            if (joystickPlayers.Count == 1)
-            {
-                AssignNextPlayerToSpawner();
-            }
+        if (joystickPlayers.Count == 1)
+        {
+            AssignNextPlayerToSpawner();
         }
     }
+
 
     // 순차적으로 다음 플레이어를 스포너에게 알려주는 함수
     public void AssignNextPlayerToSpawner()

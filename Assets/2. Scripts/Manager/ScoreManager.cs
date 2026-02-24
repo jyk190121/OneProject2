@@ -85,4 +85,10 @@ public class ScoreManager : NetworkBehaviour
     {
         totalScore.Value += amount;
     }
+
+    public void ResetScore()
+    {
+        localScore = 0;
+        if (IsServer) totalScore.Value = 0;
+    }
 }

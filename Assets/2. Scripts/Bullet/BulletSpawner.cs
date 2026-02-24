@@ -102,6 +102,8 @@ public class BulletSpawner : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
         joysticPlayer.animController.PlayAttack();
 
+        joysticPlayer.ApplyKickback();
+
         // (싱글/멀티 공통)
         ExecuteLocalFire(currentSpawnPoint);
 

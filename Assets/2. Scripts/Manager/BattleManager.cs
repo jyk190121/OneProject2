@@ -363,6 +363,9 @@ public class BattleManager : MonoBehaviour
 
     public void GameOver()
     {
+        // 1. 인스턴스 생존 확인 (방어 코드)
+        if (NetworkManager.Singleton == null) return;
+
         // 멀티플레이라면 서버(Host)만 게임오버를 판정할 수 있게 가드
         bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
         if (isNetworkActive && !NetworkManager.Singleton.IsServer) return;
@@ -397,13 +400,36 @@ public class BattleManager : MonoBehaviour
         EnemyManager em = FindFirstObjectByType<EnemyManager>();
         if (em != null) em.createEnemyStop = true;
 
-        StartCoroutine(StartSceneMove());
+        //StartCoroutine(StartSceneMove());
+        if (isNetworkActive)
+        {
+            // 멀티플레이 중이면 모든 클라이언트에게 세션 종료 알림
+            // MultiPlayerSessionManager에 있는 기능을 호출하거나 직접 처리
+            StartCoroutine(AllPlayersDeadRoutine());
+        }
+        else
+        {
+            // 싱글플레이 시 즉시 종료
+            StartCoroutine(StartSceneMove());
+        }
     }
 
     IEnumerator StartSceneMove()
     {
         yield return new WaitForSeconds(3f);
         GameSceneManager.Instance.LoadScene("StartScene");
+    }
+    IEnumerator AllPlayersDeadRoutine()
+    {
+        Debug.Log("모든 플레이어 사망! 3초 후 메인으로 이동합니다.");
+        yield return new WaitForSeconds(3f);
+
+        // 호스트가 세션을 종료하면 MultiPlayerSessionManager의 OnClientDisconnected를 통해
+        // 클라이언트들도 LeaveSession()을 호출하게 됩니다.
+        if (MultiPlayerSessionManager.Instance != null)
+        {
+            MultiPlayerSessionManager.Instance.LeaveSession();
+        }
     }
 
     public void UpdateSpawnerToAlivePlayer()

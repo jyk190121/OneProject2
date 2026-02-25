@@ -91,14 +91,28 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     // 2. 호스트가 나갔을 때 실행될 로직
     private void OnClientDisconnected(ulong clientId)
     {
+        //if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
+        //{
+        //    if (clientId == NetworkManager.ServerClientId || clientId == NetworkManager.Singleton.LocalClientId)
+        //    {
+        //        Debug.Log("<color=red>서버와의 연결이 종료되었습니다</color>");
+        //        LeaveSession();
+        //    }
+        //}
+        // 클라이언트 입장에서 서버(호스트)와의 연결이 끊겼을 때
         if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
         {
+            // 서버 ID가 끊겼거나, 자신의 ID가 끊겼을 때 (강퇴 혹은 방 터짐)
             if (clientId == NetworkManager.ServerClientId || clientId == NetworkManager.Singleton.LocalClientId)
             {
-                Debug.Log("<color=red>서버와의 연결이 종료되었습니다</color>");
+                Debug.Log("<color=red>호스트가 게임을 종료했거나 연결이 끊겼습니다. 메인으로 이동합니다.</color>");
+
+                // 여기서 즉시 씬 이동 로직 실행
+                StopAllCoroutines();
                 LeaveSession();
             }
         }
+
     }
 
     // 세션 생성/참가 로직에서 이벤트를 구독하도록 수정

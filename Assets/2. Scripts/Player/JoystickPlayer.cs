@@ -240,7 +240,7 @@ public class JoystickPlayer : BaseUnit
         {
             Quaternion targetRotation = Quaternion.LookRotation(lookDir);
             //rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f);
-            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 15f));
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * 10f));
         }
     }
 

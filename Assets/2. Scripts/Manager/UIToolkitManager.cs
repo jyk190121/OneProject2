@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -108,6 +109,26 @@ public class UIToolkitManager : MonoBehaviour
 
     void GameExit()
     {
-        Application.Quit();
+        //Application.Quit();
+        exit.ShowConfirm("게임을 종료하시겠습니까", Quit);
+    }
+
+    public void Quit()
+    {
+        // 1. 필요한 데이터 저장 (예: 점수 저장 등)
+        // SaveGameData();
+
+        // 2. 네트워크 연결 해제
+        if (NetworkManager.Singleton != null)
+            NetworkManager.Singleton.Shutdown();
+
+        // 3. 완전 종료
+        #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+        #else
+                // 프로세스를 직접 찾아 죽임으로써 백그라운드 잔류 방지
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
+                Application.Quit();
+        #endif
     }
 }

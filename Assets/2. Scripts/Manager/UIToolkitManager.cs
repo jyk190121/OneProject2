@@ -125,10 +125,9 @@ public class UIToolkitManager : MonoBehaviour
         // 3. 완전 종료
         #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
-        #else
-                // 프로세스를 직접 찾아 죽임으로써 백그라운드 잔류 방지
-                System.Diagnostics.Process.GetCurrentProcess().Kill();
-                Application.Quit();
         #endif
+        // 프로세스를 직접 찾아 죽임으로써 백그라운드 잔류 방지
+        System.Diagnostics.Process.GetCurrentProcess().Kill();
+        Application.Quit();
     }
 }

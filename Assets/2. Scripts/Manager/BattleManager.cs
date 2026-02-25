@@ -421,7 +421,7 @@ public class BattleManager : MonoBehaviour
     }
     IEnumerator AllPlayersDeadRoutine()
     {
-        Debug.Log("모든 플레이어 사망! 3초 후 메인으로 이동합니다.");
+        print("모든 플레이어 사망! 3초 후 메인으로 이동합니다.");
         yield return new WaitForSeconds(3f);
 
         // 호스트가 세션을 종료하면 MultiPlayerSessionManager의 OnClientDisconnected를 통해

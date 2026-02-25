@@ -113,7 +113,7 @@ public class UIToolkitManager : MonoBehaviour
         exit.ShowConfirm("게임을 종료하시겠습니까", Quit);
     }
 
-    public void Quit()
+    void Quit()
     {
         // 1. 필요한 데이터 저장 (예: 점수 저장 등)
         // SaveGameData();
@@ -125,9 +125,9 @@ public class UIToolkitManager : MonoBehaviour
         // 3. 완전 종료
         #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
         #endif
-        // 프로세스를 직접 찾아 죽임으로써 백그라운드 잔류 방지
-        System.Diagnostics.Process.GetCurrentProcess().Kill();
-        Application.Quit();
+
     }
 }

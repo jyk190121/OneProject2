@@ -3,49 +3,66 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
+[System.Serializable]
+public class RankEntry
+{
+    public string name;
+    public int score;
+}
+
+[System.Serializable]
+public class RankingData
+{
+    public List<RankEntry> entries = new List<RankEntry>();
+}
+
 public class RankingManager : MonoBehaviour
 {
     public static RankingManager Instance;
     private string savePath;
-    private RankingList rankingList = new RankingList();
+    private RankingData rankingData = new RankingData();
 
     void Awake()
     {
-        Instance = this;
-        savePath = Path.Combine(Application.persistentDataPath, "ranking.json");
-        LoadRanking();
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            savePath = Path.Combine(Application.persistentDataPath, "ranking.json");
+            LoadRanking();
+        }
+        else Destroy(gameObject);
     }
 
-    public void AddRank(string playerName, int playerScore)
+    public int GetExpectedRank(int score)
     {
-        RankData newRank = new RankData
-        {
-            name = playerName,
-            score = playerScore,
-            date = System.DateTime.Now.ToString("yyyy-MM-dd")
-        };
+        // 내 점수보다 높은 사람 수 + 1
+        return rankingData.entries.Count(x => x.score > score) + 1;
+    }
 
-        rankingList.ranks.Add(newRank);
+    public void AddRank(string name, int score)
+    {
+        rankingData.entries.Add(new RankEntry { name = name, score = score });
         // 점수 내림차순 정렬 후 상위 10개만 유지
-        rankingList.ranks = rankingList.ranks.OrderByDescending(r => r.score).Take(10).ToList();
-
+        rankingData.entries = rankingData.entries.OrderByDescending(x => x.score).Take(10).ToList();
         SaveRanking();
     }
 
-    public void SaveRanking()
+    private void SaveRanking()
     {
-        string json = JsonUtility.ToJson(rankingList);
+        string json = JsonUtility.ToJson(rankingData);
         File.WriteAllText(savePath, json);
     }
 
-    public void LoadRanking()
+    private void LoadRanking()
     {
         if (File.Exists(savePath))
         {
             string json = File.ReadAllText(savePath);
-            rankingList = JsonUtility.FromJson<RankingList>(json);
+            rankingData = JsonUtility.FromJson<RankingData>(json);
         }
     }
 
-    public List<RankData> GetRanks() => rankingList.ranks;
+    // UI에서 리스트를 뿌려줄 때 사용
+    public List<RankEntry> GetTopRanks() => rankingData.entries;
 }

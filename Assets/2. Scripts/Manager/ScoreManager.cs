@@ -9,7 +9,7 @@ public class ScoreManager : NetworkBehaviour
     //int score;
 
     // 싱글플레이용 점수 저장 변수
-    private int localScore = 0;
+    public int localScore = 0;
 
     public NetworkVariable<int> totalScore = new NetworkVariable<int>(0,
         NetworkVariableReadPermission.Everyone,

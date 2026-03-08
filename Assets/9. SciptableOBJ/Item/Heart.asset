@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43dbaf2ed8cb40b47b9e089648443044, type: 3}
+  m_Name: Heart
+  m_EditorClassIdentifier: 
+  heal: 100
+  att: 0
+  attSpeed: 0
+  moveSpeed: 0
+  itemPrefab: {fileID: 8289592065748413607, guid: 7b37e7e4aefd25241a194e59f001fe24, type: 3}
+  effect: {fileID: 0}

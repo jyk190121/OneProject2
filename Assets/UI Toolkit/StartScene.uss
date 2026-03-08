@@ -1,0 +1,41 @@
+.MenuBtn {
+}
+
+.MenuBtn:active {
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.78);
+}
+
+.PlayBtn {
+}
+
+.PlayBtn:active {
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.78);
+}
+
+.RankingBtn {
+}
+
+.RankingBtn:active {
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.78);
+}
+
+.SoundBtn {
+}
+
+.SoundBtn:active {
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.78);
+}
+
+.SettingBtn {
+}
+
+.SettingBtn:active {
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.78);
+}
+
+.ExitBtn {
+}
+
+.ExitBtn:active {
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.78);
+}

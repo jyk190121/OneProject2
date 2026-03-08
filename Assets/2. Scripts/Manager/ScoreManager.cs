@@ -91,4 +91,11 @@ public class ScoreManager : NetworkBehaviour
         localScore = 0;
         if (IsServer) totalScore.Value = 0;
     }
+
+    public int GetFinalScore()
+    {
+        bool isNetworkActive = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        // 멀티라면 NetworkVariable 값을, 싱글이라면 localScore 값을 반환
+        return isNetworkActive ? totalScore.Value : localScore;
+    }
 }

@@ -417,7 +417,8 @@ public class BattleManager : MonoBehaviour
     IEnumerator StartSceneMove()
     {
         yield return new WaitForSeconds(3f);
-        GameSceneManager.Instance.LoadScene("StartScene");
+        //GameSceneManager.Instance.LoadScene("StartScene");
+        GameSceneManager.Instance.LoadScene("GameOver");
     }
     IEnumerator AllPlayersDeadRoutine()
     {
@@ -426,9 +427,13 @@ public class BattleManager : MonoBehaviour
 
         // 호스트가 세션을 종료하면 MultiPlayerSessionManager의 OnClientDisconnected를 통해
         // 클라이언트들도 LeaveSession()을 호출하게 됩니다.
-        if (MultiPlayerSessionManager.Instance != null)
+        //if (MultiPlayerSessionManager.Instance != null)
+        //{
+        //    MultiPlayerSessionManager.Instance.LeaveSession();
+        //}
+        if (NetworkManager.Singleton.IsServer)
         {
-            MultiPlayerSessionManager.Instance.LeaveSession();
+            NetworkManager.Singleton.SceneManager.LoadScene("GameOver", UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
     }
 

@@ -3353,8 +3353,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   popupPanel: {fileID: 1248037196}
-  messageTxt: {fileID: 1333837163}
   noBtn: {fileID: 950496268}
+  contentParent: {fileID: 1105252577}
+  myBestTxt: {fileID: 662208700}
+  arcadeFont: {fileID: 11400000, guid: 43aed97390a819b449695630a3c7b04d, type: 2}
 --- !u!114 &1305195962
 MonoBehaviour:
   m_ObjectHideFlags: 0

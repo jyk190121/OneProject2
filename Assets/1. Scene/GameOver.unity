@@ -703,6 +703,7 @@ MonoBehaviour:
   nameController: {fileID: 708233541}
   scoreDisplay: {fileID: 2096828501}
   rankDisplay: {fileID: 892375324}
+  submitBtn: {fileID: 1019615814}
 --- !u!1 &892375322
 GameObject:
   m_ObjectHideFlags: 0

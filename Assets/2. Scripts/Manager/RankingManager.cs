@@ -36,6 +36,9 @@ public class RankingManager : MonoBehaviour
 
     public int GetExpectedRank(int score)
     {
+        // 데이터가 아예 없으면 당연히 1등
+        if (rankingData.entries == null || rankingData.entries.Count == 0) return 1;
+
         // 내 점수보다 높은 사람 수 + 1
         return rankingData.entries.Count(x => x.score > score) + 1;
     }
@@ -46,6 +49,21 @@ public class RankingManager : MonoBehaviour
         // 점수 내림차순 정렬 후 상위 10개만 유지
         rankingData.entries = rankingData.entries.OrderByDescending(x => x.score).Take(10).ToList();
         SaveRanking();
+    }
+
+    // 현재 점수가 최고 기록(1등)인지 확인하는 함수
+    public bool IsHighScore(int score)
+    {
+        if (rankingData.entries.Count == 0) return true;
+
+        // 리스트의 첫 번째(가장 높은 점수)보다 내 점수가 높으면 새로운 기록
+        return score > rankingData.entries[0].score;
+    }
+
+    // 등록된 기록이 있는지 확인
+    public bool HasAnyRanking()
+    {
+        return rankingData.entries != null && rankingData.entries.Count > 0;
     }
 
     private void SaveRanking()
@@ -61,6 +79,21 @@ public class RankingManager : MonoBehaviour
             string json = File.ReadAllText(savePath);
             rankingData = JsonUtility.FromJson<RankingData>(json);
         }
+    }
+
+    public RankEntry GetMyBestEntry(string myName)
+    {
+        // 내 이름으로 등록된 기록들 중 가장 높은 점수 반환
+        return rankingData.entries
+            .Where(x => x.name == myName)
+            .OrderByDescending(x => x.score)
+            .FirstOrDefault();
+    }
+
+    public List<RankEntry> GetTop99Ranks()
+    {
+        // 최대 99개까지 리스트 반환
+        return rankingData.entries.Take(99).ToList();
     }
 
     // UI에서 리스트를 뿌려줄 때 사용

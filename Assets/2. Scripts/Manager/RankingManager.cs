@@ -1,12 +1,15 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using static UnityEngine.LowLevelPhysics2D.PhysicsLayers;
 
 [System.Serializable]
 public class RankEntry
 {
-    public string name;
+    public string playerId; // 이름 대신 비교할 고유 값
+    public string name;     // 표시용 이름
     public int score;
 }
 
@@ -43,11 +46,27 @@ public class RankingManager : MonoBehaviour
         return rankingData.entries.Count(x => x.score > score) + 1;
     }
 
-    public void AddRank(string name, int score)
+    //public void AddRank(string name, int score)
+    //{
+    //    rankingData.entries.Add(new RankEntry { name = name, score = score });
+    //    // 점수 내림차순 정렬 후 상위 10개만 유지
+    //    rankingData.entries = rankingData.entries.OrderByDescending(x => x.score).Take(10).ToList();
+    //    SaveRanking();
+    //}
+
+    public void AddRank(string playerName, int score)
     {
-        rankingData.entries.Add(new RankEntry { name = name, score = score });
-        // 점수 내림차순 정렬 후 상위 10개만 유지
-        rankingData.entries = rankingData.entries.OrderByDescending(x => x.score).Take(10).ToList();
+        string pId = PlayerIDManager.GetPlayerID(); // 고유 ID 가져오기
+
+        rankingData.entries.Add(new RankEntry
+        {
+            playerId = pId,
+            name = playerName,
+            score = score
+        });
+
+        // Take(10)으로 되어있던 부분을 99개까지 보여주신다고 했으니 수정 권장
+        rankingData.entries = rankingData.entries.OrderByDescending(x => x.score).Take(99).ToList();
         SaveRanking();
     }
 
@@ -81,11 +100,22 @@ public class RankingManager : MonoBehaviour
         }
     }
 
-    public RankEntry GetMyBestEntry(string myName)
+    //public RankEntry GetMyBestEntry(string myName)
+    //{
+    //    // 내 이름으로 등록된 기록들 중 가장 높은 점수 반환
+    //    return rankingData.entries
+    //        .Where(x => x.name == myName)
+    //        .OrderByDescending(x => x.score)
+    //        .FirstOrDefault();
+    //}
+    public RankEntry GetMyBestEntry()
     {
-        // 내 이름으로 등록된 기록들 중 가장 높은 점수 반환
+        if (rankingData.entries == null || rankingData.entries.Count == 0) return null;
+
+        string pId = PlayerIDManager.GetPlayerID();
+
         return rankingData.entries
-            .Where(x => x.name == myName)
+            .Where(x => x.playerId == pId) // 고유 ID로 필터링
             .OrderByDescending(x => x.score)
             .FirstOrDefault();
     }
@@ -95,6 +125,7 @@ public class RankingManager : MonoBehaviour
         // 최대 99개까지 리스트 반환
         return rankingData.entries.Take(99).ToList();
     }
+
 
     // UI에서 리스트를 뿌려줄 때 사용
     public List<RankEntry> GetTopRanks() => rankingData.entries;

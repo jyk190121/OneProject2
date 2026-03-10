@@ -703,7 +703,6 @@ MonoBehaviour:
   nameController: {fileID: 708233541}
   scoreDisplay: {fileID: 2096828501}
   rankDisplay: {fileID: 892375324}
-  submitBtn: {fileID: 1019615814}
 --- !u!1 &892375322
 GameObject:
   m_ObjectHideFlags: 0
@@ -761,7 +760,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 2
+  m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 43aed97390a819b449695630a3c7b04d, type: 2}
   m_sharedMaterial: {fileID: 4979032581447164869, guid: 43aed97390a819b449695630a3c7b04d, type: 2}

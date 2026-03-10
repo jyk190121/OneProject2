@@ -3,15 +3,19 @@ using TMPro;
 using UnityEngine.UI;
 using System.Text.RegularExpressions;
 using Key = UnityEngine.InputSystem.Key;
+using Unity.Netcode;
 public class NameController : MonoBehaviour
 {
     public TMP_InputField[] nameSlots; // 3개의 InputField 연결
     public TextMeshProUGUI finalScoreTxt;
     public TextMeshProUGUI rankTxt;
     public Button submitBtn;
+    GameOverManager gameOverManager;
 
     private void Start()
     {
+        gameOverManager = FindAnyObjectByType<GameOverManager>();
+
         submitBtn.onClick.AddListener(OnClickSubmit);
 
         // 시스템적으로 한글 입력기(IME)를 비활성화 (커스텀 Input 매니저와 연동)
@@ -118,6 +122,17 @@ public class NameController : MonoBehaviour
         }
 
         // 3글자가 완료되었다면 등록 절차 진행 (GameOverManager의 함수 호출)
-        FindObjectOfType<GameOverManager>().OnRegisterRanking(fullName);
+        gameOverManager.OnRegisterRanking(fullName);
+
+        GameSceneManager.Instance.LoadScene("StartScene");
+
+        // 멀티플레이 중이었다면 세션 종료
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            if (MultiPlayerSessionManager.Instance != null)
+            {
+                MultiPlayerSessionManager.Instance.LeaveSession();
+            }
+        }
     }
 }

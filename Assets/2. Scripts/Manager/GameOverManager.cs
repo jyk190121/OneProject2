@@ -1,37 +1,16 @@
 using TMPro;
-using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class GameOverManager : MonoBehaviour
 {
     public NameController nameController;
     public TextMeshProUGUI scoreDisplay;
     public TextMeshProUGUI rankDisplay;
-    public Button submitBtn;
 
     private int finalScore = 0;
 
     void Start()
     {
-        //UpdateScoreDisplay();
-
-        //// 1. 점수 불러오기 (ScoreManager가 DontDestroyOnLoad라고 가정)
-        //int score = 0;
-        //if (ScoreManager.Instance != null)
-        //{
-        //    //score = ScoreManager.Instance.GetFinalScore(); // 현재 씬의 점수 값 가져오기
-        //}
-
-        //scoreDisplay.text = score.ToString();
-
-        //// 2. 임시 랭킹 계산 (등록 전 현재 점수로 몇 위인지 미리 보여줌)
-        //if (RankingManager.Instance != null)
-        //{
-        //    int expectedRank = RankingManager.Instance.GetExpectedRank(score);
-        //    rankDisplay.text = expectedRank.ToString();
-        //}
-
         if (ScoreManager.Instance != null)
         {
             finalScore = ScoreManager.Instance.GetFinalScore();
@@ -58,7 +37,7 @@ public class GameOverManager : MonoBehaviour
             }
         }
 
-        submitBtn.onClick.AddListener(OnClickConfirm);
+        //submitBtn.onClick.AddListener(OnClickConfirm);
     }
     //void UpdateScoreDisplay()
     //{
@@ -89,36 +68,36 @@ public class GameOverManager : MonoBehaviour
     //    }
     //}
     // 등록 버튼(SubmitBtn)에 연결할 함수
-    public void OnClickConfirm()
-    {
-        string finalName = nameController.GetFullName();
+    //public void OnClickConfirm()
+    //{
+    //    string finalName = nameController.GetFullName();
 
-        // 3글자 검증
-        if (finalName.Length < 3)
-        {
-            Debug.Log("이름을 3글자 입력해주세요.");
-            return;
-        }
+    //    // 3글자 검증
+    //    if (finalName.Length < 3)
+    //    {
+    //        Debug.Log("이름을 3글자 입력해주세요.");
+    //        return;
+    //    }
 
-        // 이름 기억 (나중에 최고점수 조회용)
-        PlayerPrefs.SetString("LastPlayerName", finalName);
+    //    // 이름 기억 (나중에 최고점수 조회용)
+    //    PlayerPrefs.SetString("LastPlayerName", finalName);
 
-        // 랭킹 저장
-        if (RankingManager.Instance != null)
-        {
-            RankingManager.Instance.AddRank(finalName, finalScore);
-        }
+    //    // 랭킹 저장
+    //    if (RankingManager.Instance != null)
+    //    {
+    //        RankingManager.Instance.AddRank(finalName, finalScore);
+    //    }
 
-        // 저장 후 메인 씬으로 이동 또는 랭킹판 표시
-        GameSceneManager.Instance.LoadScene("StartScene");
+    //    // 저장 후 메인 씬으로 이동 또는 랭킹판 표시
+    //    GameSceneManager.Instance.LoadScene("StartScene");
 
-        // 멀티플레이 중이었다면 세션 종료
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
-        {
-            if (MultiPlayerSessionManager.Instance != null)
-                MultiPlayerSessionManager.Instance.LeaveSession();
-        }
-    }
+    //    // 멀티플레이 중이었다면 세션 종료
+    //    if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+    //    {
+    //        if (MultiPlayerSessionManager.Instance != null)
+    //            MultiPlayerSessionManager.Instance.LeaveSession();
+    //    }
+    //}
 
 
     // NameController에서 호출할 등록 함수

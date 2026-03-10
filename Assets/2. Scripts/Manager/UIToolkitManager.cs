@@ -94,7 +94,7 @@ public class UIToolkitManager : MonoBehaviour
 
     void RankingBoard()
     {
-
+        rank.ShowRanking();
     }
 
     void SoundMuteSetting()

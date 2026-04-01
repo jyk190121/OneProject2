@@ -109,13 +109,23 @@ public class RankingPopup : BasePopup
     public TextMeshProUGUI myBestTxt;
     public TMP_FontAsset arcadeFont;
 
+    public Button singleTabBtn;                 // 인스펙터에서 '싱글' 버튼 연결
+    public Button multiTabBtn;                  // 인스펙터에서 '멀티' 버튼 연결
+    private bool isCurrentViewMulti = false;
+
     void OnEnable()
     {
         // 버튼 이벤트 연결 (ExitPopup 패턴 적용)
         noBtn.onClick.AddListener(OnNoClicked);
 
-        // 팝업이 켜질 때 리스트 갱신
-        RefreshRankingList();
+        // 버튼 클릭 시 모드 전환
+        singleTabBtn.onClick.AddListener(() => SwitchTab(false));
+        multiTabBtn.onClick.AddListener(() => SwitchTab(true));
+
+        SwitchTab(false); // 기본값: 싱글 랭킹
+
+        //// 팝업이 켜질 때 리스트 갱신
+        //RefreshRankingList();
     }
 
     void OnDisable()
@@ -148,77 +158,35 @@ public class RankingPopup : BasePopup
 
         if (RankingManager.Instance == null) return;
 
-        List<RankEntry> ranks = RankingManager.Instance.GetTop99Ranks();
+        //List<RankEntry> ranks = RankingManager.Instance.GetTop99Ranks();
+
+        // 현재 탭 설정에 맞는 리스트만 가져옴
+        List<RankEntry> ranks = RankingManager.Instance.GetFilteredRanks(isCurrentViewMulti);
+
+        //for (int i = 0; i < ranks.Count; i++)
+        //{
+        //    // 한 줄(Row) 생성
+        //    GameObject rowObj = new GameObject($"Rank_{i + 1}", typeof(RectTransform));
+        //    rowObj.transform.SetParent(contentParent, false);
+
+        //    // 높이 지정
+        //    RectTransform rowRect = rowObj.GetComponent<RectTransform>();
+        //    rowRect.sizeDelta = new Vector2(0, 50);
+
+        //    // 텍스트 생성
+        //    CreateRankText(rowObj.transform, i + 1, ranks[i].name, ranks[i].score);
+        //    //CreateRankRow(i + 1, ranks[i].name, ranks[i].score);
+        //}
 
         for (int i = 0; i < ranks.Count; i++)
         {
-            // 한 줄(Row) 생성
-            GameObject rowObj = new GameObject($"Rank_{i + 1}", typeof(RectTransform));
-            rowObj.transform.SetParent(contentParent, false);
-
-            // 높이 지정
-            RectTransform rowRect = rowObj.GetComponent<RectTransform>();
-            rowRect.sizeDelta = new Vector2(0, 50);
-
-            // 텍스트 생성
-            CreateRankText(rowObj.transform, i + 1, ranks[i].name, ranks[i].score);
-            //CreateRankRow(i + 1, ranks[i].name, ranks[i].score);
+            // 이전에 만든 연두색 스코어 로직이 포함된 함수 호출
+            CreateRankText(contentParent, i + 1, ranks[i].name, ranks[i].score);
         }
 
-        UpdateMyBestScore();
+        // 나의최고점수 갱신
+        UpdateMyBestScore(); 
     }
-
-    //private void CreateRankText(Transform parent, int rank, string pName, int pScore)
-    //{
-    //    GameObject textObj = new GameObject("TextData", typeof(RectTransform), typeof(TextMeshProUGUI));
-    //    textObj.transform.SetParent(parent, false);
-
-    //    TextMeshProUGUI tmp = textObj.GetComponent<TextMeshProUGUI>();
-    //    tmp.font = arcadeFont;
-    //    tmp.fontSize = 50;
-    //    tmp.alignment = TextAlignmentOptions.Left;
-
-    //    // Rich Text를 활용한 정렬: [순위] [이름] [점수(우측)]
-    //    // <pos=비율> 태그로 탭 간격을 맞춥니다.
-    //    tmp.text = $"{rank:D2}  {pName} <pos=60%>{pScore:N0}";
-
-    //    RectTransform rect = textObj.GetComponent<RectTransform>();
-    //    rect.anchorMin = Vector2.zero;
-    //    rect.anchorMax = Vector2.one;
-    //    rect.offsetMin = new Vector2(30, 0);
-    //    rect.offsetMax = new Vector2(-30, 0);
-    //}
-    //void CreateRankRow(int rank, string pName, int pScore)
-    //{
-    //    // 1. 행(Row) 오브젝트 생성
-    //    GameObject rowObj = new GameObject($"Rank_{rank}", typeof(RectTransform));
-    //    rowObj.transform.SetParent(contentParent, false);
-
-    //    RectTransform rowRect = rowObj.GetComponent<RectTransform>();
-    //    rowRect.sizeDelta = new Vector2(0, 50); // 행 높이 설정
-
-    //    // 2. 텍스트 오브젝트 생성
-    //    GameObject textObj = new GameObject("TextData", typeof(RectTransform), typeof(TextMeshProUGUI));
-    //    textObj.transform.SetParent(rowObj.transform, false);
-
-    //    TextMeshProUGUI tmp = textObj.GetComponent<TextMeshProUGUI>();
-    //    tmp.font = arcadeFont;
-    //    tmp.fontSize = 50;
-
-    //    // 자동 줄바꿈 방지 - Obsolete 경고 해결
-    //    tmp.textWrappingMode = TextWrappingModes.NoWrap;
-
-    //    // Rich Text pos 태그를 활용해 이름과 점수 간격 분리
-    //    tmp.text = $"{rank:D2}  {pName} <pos=65%>{pScore:N0}";
-
-    //    // 텍스트 정렬 및 여백
-    //    RectTransform rect = textObj.GetComponent<RectTransform>();
-    //    rect.anchorMin = Vector2.zero;
-    //    rect.anchorMax = Vector2.one;
-    //    rect.offsetMin = new Vector2(30, 0);
-    //    rect.offsetMax = new Vector2(-30, 0);
-    //}
-
 
     void CreateRankText(Transform parent, int rank, string pName, int pScore)
     {
@@ -260,5 +228,12 @@ public class RankingPopup : BasePopup
         {
             myBestTxt.text = "나의 최고점수 : 기록 없음";
         }
+    }
+
+    private void SwitchTab(bool isMulti)
+    {
+        isCurrentViewMulti = isMulti;
+        // (선택사항) 버튼 색상 변경 로직 등을 넣어 현재 탭을 표시하면 좋습니다.
+        RefreshRankingList();
     }
 }

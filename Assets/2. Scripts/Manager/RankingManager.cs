@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using static UnityEngine.LowLevelPhysics2D.PhysicsLayers;
 
 [System.Serializable]
 public class RankEntry
@@ -11,6 +10,7 @@ public class RankEntry
     public string playerId; // 이름 대신 비교할 고유 값
     public string name;     // 표시용 이름
     public int score;
+    public bool isMultiplay; // 추가: 싱글(false), 멀티(true) 구분
 }
 
 [System.Serializable]
@@ -54,20 +54,32 @@ public class RankingManager : MonoBehaviour
     //    SaveRanking();
     //}
 
-    public void AddRank(string playerName, int score)
+    public void AddRank(string playerName, int score, bool isMultiplay)
     {
         string pId = PlayerIDManager.GetPlayerID(); // 고유 ID 가져오기
 
+        // 1. 정상적인 데이터 한 개만 추가
         rankingData.entries.Add(new RankEntry
         {
             playerId = pId,
             name = playerName,
-            score = score
+            score = score,
+            isMultiplay = isMultiplay // 현재 모드 저장
         });
 
-        // Take(10)으로 되어있던 부분을 99개까지 보여주신다고 했으니 수정 권장
-        rankingData.entries = rankingData.entries.OrderByDescending(x => x.score).Take(99).ToList();
+        // 정렬 및 개수 제한 (필터링을 위해 전체 데이터는 넉넉히 유지)
+        rankingData.entries = rankingData.entries.OrderByDescending(x => x.score).Take(200).ToList();
         SaveRanking();
+    }
+
+    // 멀티용?
+    public List<RankEntry> GetFilteredRanks(bool isMulti)
+    {
+        return rankingData.entries
+            .Where(x => x.isMultiplay == isMulti) // 모드 필터링
+            .OrderByDescending(x => x.score)
+            .Take(99) // 화면에는 상위 99개만
+            .ToList();
     }
 
     // 현재 점수가 최고 기록(1등)인지 확인하는 함수

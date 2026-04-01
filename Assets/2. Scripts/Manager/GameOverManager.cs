@@ -1,4 +1,5 @@
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 
 public class GameOverManager : MonoBehaviour
@@ -105,7 +106,10 @@ public class GameOverManager : MonoBehaviour
     {
         if (RankingManager.Instance != null)
         {
-            RankingManager.Instance.AddRank(playerName, finalScore);
+            // Netcode for GameObjects를 사용 중이시니 아래 조건으로 판단 가능
+            bool isMulti = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+
+            RankingManager.Instance.AddRank(playerName, finalScore, isMulti);
             Debug.Log($"랭킹 등록 완료: {playerName} - {finalScore}점");
 
             // 등록 후 처리: 버튼 비활성화나 랭킹보드 씬 이동 등
